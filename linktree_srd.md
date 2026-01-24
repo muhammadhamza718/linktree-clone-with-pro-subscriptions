@@ -680,9 +680,9 @@ User edits link → API request (authenticated)
 
 #### 4.4.1 Frontend
 
-- **Framework:** Next.js 14+ (App Router for SSR/SSG)
+- **Framework:** Next.js 16.1.4 (App Router for SSR/SSG)
 - **Language:** TypeScript (strict mode)
-- **UI Library:** React 18+
+- **UI Library:** React 19.2.3
 - **Styling:** Tailwind CSS (for rapid prototyping and consistency)
 - **Component Library:** shadcn/ui or custom components
 - **State Management:** React Context + Hooks (or Zustand for complex state)
