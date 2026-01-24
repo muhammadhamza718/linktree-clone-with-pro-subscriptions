@@ -1,0 +1,170 @@
+openapi: 3.0.0
+info:
+  title: Profile Management API
+  version: 1.0.0
+  description: API for managing user profiles
+
+paths:
+  /api/profile:
+    get:
+      summary: Get current user's profile
+      responses:
+        '200':
+          description: User's profile data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+    put:
+      summary: Update user's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+
+  /api/profile/username-available:
+    post:
+      summary: Check if username is available
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+              required:
+                - username
+      responses:
+        '200':
+          description: Username availability check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                  message:
+                    type: string
+
+  /api/profile/github-metadata:
+    post:
+      summary: Fetch GitHub repository metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  format: uri
+              required:
+                - repoUrl
+      responses:
+        '200':
+          description: GitHub repository metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GithubMetadata'
+
+components:
+  schemas:
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+        bio:
+          type: string
+          nullable: true
+        avatar:
+          type: string
+          nullable: true
+        avatarLayout:
+          type: string
+          enum: [classic, hero]
+        title:
+          type: string
+          nullable: true
+        themeId:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - username
+        - displayName
+        - isActive
+
+    ProfileUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        bio:
+          type: string
+        avatar:
+          type: string
+        avatarLayout:
+          type: string
+          enum: [classic, hero]
+        title:
+          type: string
+        themeId:
+          type: string
+
+    GithubMetadata:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        stars:
+          type: integer
+        language:
+          type: string
+          nullable: true
+        forks:
+          type: integer
+        topics:
+          type: array
+          items:
+            type: string
+        license:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time

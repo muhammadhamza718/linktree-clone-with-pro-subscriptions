@@ -1,0 +1,236 @@
+openapi: 3.0.0
+info:
+  title: Links Management API
+  version: 1.0.0
+  description: API for managing user profile links
+
+paths:
+  /api/links:
+    get:
+      summary: Get all links for current user
+      responses:
+        '200':
+          description: List of user's links
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Link'
+    post:
+      summary: Create a new link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkInput'
+      responses:
+        '200':
+          description: Link created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+
+  /api/links/{id}:
+    put:
+      summary: Update a link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkUpdate'
+      responses:
+        '200':
+          description: Link updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+    delete:
+      summary: Delete a link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Link deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /api/links/reorder:
+    put:
+      summary: Reorder links using drag-and-drop
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                linkOrder:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      order:
+                        type: integer
+              required:
+                - linkOrder
+      responses:
+        '200':
+          description: Links reordered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /api/links/{id}/visibility:
+    put:
+      summary: Toggle link visibility
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isVisible:
+                  type: boolean
+              required:
+                - isVisible
+      responses:
+        '200':
+          description: Link visibility updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+components:
+  schemas:
+    Link:
+      type: object
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+        linkType:
+          type: string
+          enum: [social, website, project, email, phone, embed, custom]
+        thumbnail:
+          type: string
+          nullable: true
+        icon:
+          type: string
+          nullable: true
+        order:
+          type: integer
+        isVisible:
+          type: boolean
+        isFeatured:
+          type: boolean
+        githubRepo:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - profileId
+        - title
+        - url
+        - order
+        - isVisible
+
+    LinkInput:
+      type: object
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+        linkType:
+          type: string
+          enum: [social, website, project, email, phone, embed, custom]
+        thumbnail:
+          type: string
+        icon:
+          type: string
+        order:
+          type: integer
+        isVisible:
+          type: boolean
+        isFeatured:
+          type: boolean
+        githubRepo:
+          type: string
+      required:
+        - title
+        - url
+        - order
+
+    LinkUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+        linkType:
+          type: string
+          enum: [social, website, project, email, phone, embed, custom]
+        thumbnail:
+          type: string
+        icon:
+          type: string
+        order:
+          type: integer
+        isVisible:
+          type: boolean
+        isFeatured:
+          type: boolean
+        githubRepo:
+          type: string

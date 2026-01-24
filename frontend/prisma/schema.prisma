@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  profile       Profile?
+}
+
+model Profile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  username      String   @unique // 3-30 chars, alphanumeric + hyphens
+  displayName   String
+  bio           String?  // max 280 chars
+  avatar        String?
+  avatarLayout  String?  @default("classic") // 'classic', 'hero'
+  title         String?
+  themeId       String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links         Link[]
+  theme         Theme?   @relation(fields: [themeId], references: [id])
+}
+
+model Link {
+  id         String   @id @default(cuid())
+  profileId  String
+  title      String   // required
+  url        String   // required, validated URL
+  linkType   String?  // 'social', 'website', 'project', 'email', 'phone', 'embed', 'custom'
+  thumbnail  String?
+  icon       String?
+  order      Int      // required, for sorting
+  isVisible  Boolean  @default(true)
+  isFeatured Boolean  @default(false)
+  githubRepo String?  // for GitHub integration
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Theme {
+  id           String   @id @default(cuid())
+  name         String   // required
+  userId       String?
+  presetName   String?  // for predefined themes
+  backgroundColor String?
+  textColor    String?
+  linkColor    String?
+  buttonStyle  String?  @default("rounded") // 'rounded', 'square', 'pill'
+  buttonColor  String?  @default("solid")   // 'solid', 'gradient', 'glass'
+  fontFamily   String?
+  fontSize     String?
+  isLightMode  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User?    @relation(fields: [userId], references: [id])
+  profiles     Profile[]
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  profileId String?
+  linkId    String?
+  eventType String   // 'profile_view', 'link_click'
+  ipAddress String?
+  userAgent String?
+  referrer  String?
+  timestamp DateTime @default(now())
+  profile   Profile? @relation(fields: [profileId], references: [id])
+  link      Link?    @relation(fields: [linkId], references: [id])
+}
