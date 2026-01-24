@@ -1,55 +1,59 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+SYNC IMPACT REPORT:
+Version change: N/A → 1.0.0
+Modified principles: None (new constitution)
+Added sections: All principles and workflow as specified
+Removed sections: Template placeholders
+Templates requiring updates:
+  - .specify/templates/plan-template.md ✅ updated
+  - .specify/templates/spec-template.md ✅ updated
+  - .specify/templates/tasks-template.md ✅ updated
+  - .specify/templates/commands/*.md ✅ reviewed
+Follow-up TODOs: None
+-->
+
+# Linktree-Pro-bio-Profile-app Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### Zero-Subscription Barrier (NON-NEGOTIABLE)
+All Pro-level features must remain free and accessible without paywalls. No feature that would traditionally be locked behind a subscription should be implemented as a paid feature in this application.
+<!-- This principle ensures the application remains accessible to all users regardless of financial capacity -->
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### Developer-First Integration
+Treat GitHub repository metadata and live demo previews as first-class citizens. The application must seamlessly integrate with developer workflows and prioritize showcasing development work.
+<!-- This principle emphasizes the importance of developer experience and portfolio-focused functionality -->
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### Premium Visual Standard
+UI/UX must meet or exceed Linktree Pro aesthetics using modern CSS. The user interface should be visually appealing, responsive, and professionally designed.
+<!-- This principle ensures the application maintains high visual standards that compete with commercial alternatives -->
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### Onboarding Speed
+All decisions should prioritize a "Register-to-Publish" flow that takes less than 5 minutes. User registration and initial profile setup should be streamlined and efficient.
+<!-- This principle focuses on minimizing friction in the user onboarding process -->
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### High-Efficiency Performance
+Public profiles must load in <2s with mobile-first architecture. Performance optimization and mobile responsiveness are critical requirements.
+<!-- This principle ensures optimal user experience through fast loading times and mobile compatibility -->
 
-### [PRINCIPLE_6_NAME]
+### Production-Grade Reliability
+Enforce 99.9% uptime for redirects and secure auth via Better Auth. The application must maintain high availability and robust security measures.
+<!-- This principle establishes reliability and security as fundamental requirements -->
 
+## Development Workflow
 
-[PRINCIPLE__DESCRIPTION]
+The development workflow prioritizes Test-Driven Development (TDD) as mandated by the Software Requirements Document (SRD). All features must follow the Red-Green-Refactor cycle with tests written before implementation. This ensures code quality, reduces bugs, and maintains a reliable codebase that meets the reliability standards outlined in the core principles.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Additional Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- All user authentication must be handled securely through Better Auth
+- Mobile-first responsive design is mandatory for all UI components
+- Performance budgets must be maintained with <2s load times for public profiles
+- All features must be accessible without subscription barriers
+- Code must be well-tested with comprehensive test coverage
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution serves as the governing document for all development decisions in the Linktree-Pro-bio-Profile-app project. All code reviews, feature implementations, and architectural decisions must align with these principles. Any proposed changes to these principles require formal amendment procedures with justification and team consensus.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-01-24 | **Last Amended**: 2026-01-24
