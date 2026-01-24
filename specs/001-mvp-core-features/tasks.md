@@ -211,14 +211,14 @@ description: "Task list for MVP Core Features implementation"
 **Purpose**: Improvements that affect multiple user stories
 
 - [X] T077 [P] Documentation updates in README.md and docs/
-- [ ] T078 Code cleanup and refactoring across all components
-- [ ] T079 Performance optimization across all user stories
+- [X] T078 Code cleanup and refactoring across all components
+- [X] T079 Performance optimization across all user stories
 - [ ] T080 [P] Additional unit tests in tests/unit/
 - [ ] T081 Security hardening for all API endpoints
 - [ ] T082 Accessibility improvements for all UI components
 - [ ] T083 Internationalization setup for multi-language support
-- [ ] T084 Run quickstart.md validation
-- [ ] T085 Zero-Subscription barrier enforcement across all features (spec.md:FR-016)
+- [X] T084 Run quickstart.md validation
+- [X] T085 Zero-Subscription barrier enforcement across all features (spec.md:FR-016)
 
 ---
 
