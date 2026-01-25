@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import prisma from '../../../../lib/db';
 import dynamic from 'next/dynamic';
+import { isLinkVisible } from '../../../../lib/link-scheduling';
 
 // Dynamically import ProfileView with loading component for performance
 const ProfileView = dynamic(() => import('../../../../components/public-profile/profile-view'), {
@@ -29,7 +30,6 @@ export async function generateMetadata({ params }: { params: { username: string 
       include: {
         user: true,
         links: {
-          where: { isVisible: true },
           orderBy: { order: 'asc' },
         },
         theme: true,
@@ -39,6 +39,10 @@ export async function generateMetadata({ params }: { params: { username: string 
     if (!profile) {
       return {};
     }
+
+    // Filter links based on scheduling and visibility
+    const currentTime = new Date();
+    const visibleLinks = profile.links.filter(link => isLinkVisible(link, currentTime));
 
     return {
       title: `${profile.displayName} - ${profile.title || 'Profile'}`,
@@ -82,7 +86,6 @@ export default async function PublicProfilePage({ params }: { params: { username
       include: {
         user: true,
         links: {
-          where: { isVisible: true },
           orderBy: { order: 'asc' },
         },
         theme: true,
@@ -93,14 +96,31 @@ export default async function PublicProfilePage({ params }: { params: { username
       notFound();
     }
 
-    // Track profile view
+    // Filter links based on scheduling and visibility
+    const currentTime = new Date();
+    const visibleLinks = profile.links.filter(link => isLinkVisible(link, currentTime));
+
+    // Track profile view with enhanced analytics
     try {
+      // Get visitor information for advanced analytics
+      const ipAddress = 'temp_ip'; // Would get from request headers
+      const userAgent = 'temp_user_agent'; // Would get from request headers
+      const referrer = 'temp_referrer'; // Would get from request headers
+
+      // Use the extended analytics event model with geolocation and device tracking
       await prisma.analyticsEvent.create({
         data: {
           profileId: profile.id,
           eventType: 'profile_view',
-          ipAddress: 'temp_ip', // Would get from request headers
-          userAgent: 'temp_user_agent', // Would get from request headers
+          ipAddress,
+          userAgent,
+          referrer,
+          // Add advanced analytics fields for geolocation and device tracking
+          country: 'temp_country', // Would get from IP geolocation
+          city: 'temp_city', // Would get from IP geolocation
+          deviceType: 'desktop', // Would get from user agent parsing
+          browser: 'temp_browser', // Would get from user agent parsing
+          os: 'temp_os', // Would get from user agent parsing
         },
       });
     } catch (error) {
@@ -108,8 +128,9 @@ export default async function PublicProfilePage({ params }: { params: { username
       console.error('Failed to log profile view:', error);
     }
 
+    // Return profile with filtered visible links
     return (
-      <ProfileView profile={profile} />
+      <ProfileView profile={{...profile, links: visibleLinks}} />
     );
   } catch (error) {
     console.error('Error loading profile:', error);

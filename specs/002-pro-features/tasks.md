@@ -95,11 +95,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T029 [P] [US2] Update Link model with scheduling fields (startDate, endDate, timezone) in prisma/schema.prisma (linktree_srd.md:180-188)
-- [ ] T030 [US2] Implement link scheduling API endpoints in app/api/links/schedule/route.ts (linktree_srd.md:180-188)
-- [ ] T031 [US2] Create link schedule picker component in components/links/link-schedule-picker.tsx (linktree_srd.md:180-188)
-- [ ] T032 [US2] Write test -> Implement "Is link visible based on schedule?" logic in lib/link-scheduling.ts (linktree_srd.md:180-188)
-- [ ] T033 [US2] Update profile rendering to respect scheduled visibility in app/@/[username]/page.tsx (linktree_srd.md:180-188)
+- [X] T029 [P] [US2] Update Link model with scheduling fields (startDate, endDate, timezone) in prisma/schema.prisma (linktree_srd.md:180-188)
+- [X] T030 [US2] Implement link scheduling API endpoints in app/api/links/schedule/route.ts (linktree_srd.md:180-188)
+- [X] T031 [US2] Create link schedule picker component in components/links/link-schedule-picker.tsx (linktree_srd.md:180-188)
+- [X] T032 [US2] Write test -> Implement "Is link visible based on schedule?" logic in lib/link-scheduling.ts (linktree_srd.md:180-188)
+- [X] T033 [US2] Update profile rendering to respect scheduled visibility in app/@/[username]/page.tsx (linktree_srd.md:180-188)
 - [ ] T034 [US2] Add scheduled links section to link manager in components/profile/link-manager.tsx (linktree_srd.md:180-188)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently

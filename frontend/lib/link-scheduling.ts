@@ -7,9 +7,14 @@ import { Link } from '../types';
 
 // Check if a link is currently visible based on its schedule and timezone
 export function isLinkVisible(link: Link, currentTime: Date = new Date()): boolean {
-  // If no schedule is set, the link is always visible
+  // If the link is explicitly set to not be visible, return false regardless of schedule
+  if (!link.isVisible) {
+    return false;
+  }
+
+  // If no schedule is set, the link is visible if the general isVisible flag is true
   if (!link.startDate && !link.endDate) {
-    return link.isVisible; // Use the general visibility flag
+    return true;
   }
 
   // Convert current time to the link's timezone if specified
@@ -49,8 +54,7 @@ export function isLinkVisible(link: Link, currentTime: Date = new Date()): boole
   }
 
   // If we got here, the link is within its scheduled timeframe
-  // Return the general visibility flag
-  return link.isVisible;
+  return true;
 }
 
 // Get the timezone offset in minutes for a given timezone string
