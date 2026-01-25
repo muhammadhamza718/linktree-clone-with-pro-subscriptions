@@ -19,6 +19,7 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   profile       Profile?
+  themes        Theme[]  // User has many themes (one-to-many relation)
 }
 
 model Profile {
@@ -61,6 +62,7 @@ model Link {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  analyticsEvents AnalyticsEvent[] // Link has many analytics events (one-to-many)
 
   // NEW FIELDS FOR PRO FEATURES (Task T004)
   startDate      DateTime?  // for scheduling
@@ -86,7 +88,7 @@ model Theme {
   isLightMode  Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  user         User?    @relation(fields: [userId], references: [id])
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull, map: "themes_user_fkey")
   profiles     Profile[]
 }
 
@@ -99,8 +101,8 @@ model AnalyticsEvent {
   userAgent String?
   referrer  String?
   timestamp DateTime @default(now())
-  profile   Profile? @relation(fields: [profileId], references: [id])
-  link      Link?    @relation(fields: [linkId], references: [id])
+  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade, map: "analytics_profile_fkey")
+  link      Link?    @relation(fields: [linkId], references: [id], onDelete: Cascade, map: "analytics_link_fkey")
 
   // NEW FIELDS FOR ADVANCED ANALYTICS (Task T006)
   country       String?  // from IP geolocation
@@ -122,28 +124,6 @@ model CustomDomain {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   profile       Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-}
-
-// NEW MODEL FOR PRO FEATURES (Task T006 - Extended Analytics)
-model AnalyticsEventExtended {
-  id            String   @id @default(cuid())
-  profileId     String?
-  linkId        String?
-  eventType     String   // 'profile_view', 'link_click'
-  ipAddress     String?
-  userAgent     String?
-  referrer      String?
-  timestamp     DateTime @default(now())
-  profile       Profile? @relation(fields: [profileId], references: [id])
-  link          Link?    @relation(fields: [linkId], references: [id])
-
-  // NEW FIELDS FOR ADVANCED ANALYTICS (Task T006)
-  country       String?  // from IP geolocation
-  city          String?  // from IP geolocation
-  deviceType    String?  // 'mobile', 'tablet', 'desktop'
-  browser       String?  // browser name
-  os            String?  // operating system
-  timezoneOffset Int?    // for timezone tracking
 }
 
 // NEW MODEL FOR PRO FEATURES (Task T007)
