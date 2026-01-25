@@ -37,6 +37,13 @@ model Profile {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   links         Link[]
   theme         Theme?   @relation(fields: [themeId], references: [id])
+
+  // NEW RELATIONSHIPS FOR PRO FEATURES
+  customDomain  CustomDomain? // One-to-one relationship with custom domain
+  analyticsEvents AnalyticsEvent[] // Profile has many analytics events
+  richContentBlocks RichContentBlock[] // Profile has many rich content blocks
+  customCss     CustomCSS[] // Profile has many custom CSS entries
+  contactSubmissions ContactSubmission[] // Profile has many contact submissions
 }
 
 model Link {
@@ -54,6 +61,14 @@ model Link {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  // NEW FIELDS FOR PRO FEATURES (Task T004)
+  startDate      DateTime?  // for scheduling
+  endDate        DateTime?  // for scheduling
+  timezone       String?    // for timezone-aware scheduling
+  passwordHash   String?    // for password protection
+  isAgeGated     Boolean    @default(false) // for age-gating
+  isPinned       Boolean    @default(false) // for link pinning
 }
 
 model Theme {
@@ -75,15 +90,74 @@ model Theme {
   profiles     Profile[]
 }
 
-model AnalyticsEvent {
-  id        String   @id @default(cuid())
-  profileId String?
-  linkId    String?
-  eventType String   // 'profile_view', 'link_click'
-  ipAddress String?
-  userAgent String?
-  referrer  String?
-  timestamp DateTime @default(now())
-  profile   Profile? @relation(fields: [profileId], references: [id])
-  link      Link?    @relation(fields: [linkId], references: [id])
+// NEW MODEL FOR PRO FEATURES (Task T005)
+model CustomDomain {
+  id            String   @id @default(cuid())
+  profileId     String   @unique
+  domain        String   @unique // e.g., mybrand.com
+  verifyToken   String   // for DNS verification
+  isVerified    Boolean  @default(false)
+  sslEnabled    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  profile       Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+// NEW MODEL FOR PRO FEATURES (Task T006 - Extended Analytics)
+model AnalyticsEventExtended {
+  id            String   @id @default(cuid())
+  profileId     String?
+  linkId        String?
+  eventType     String   // 'profile_view', 'link_click'
+  ipAddress     String?
+  userAgent     String?
+  referrer      String?
+  timestamp     DateTime @default(now())
+  profile       Profile? @relation(fields: [profileId], references: [id])
+  link          Link?    @relation(fields: [linkId], references: [id])
+
+  // NEW FIELDS FOR ADVANCED ANALYTICS (Task T006)
+  country       String?  // from IP geolocation
+  city          String?  // from IP geolocation
+  deviceType    String?  // 'mobile', 'tablet', 'desktop'
+  browser       String?  // browser name
+  os            String?  // operating system
+  timezoneOffset Int?    // for timezone tracking
+}
+
+// NEW MODEL FOR PRO FEATURES (Task T007)
+model RichContentBlock {
+  id            String   @id @default(cuid())
+  profileId     String
+  contentType   String   // 'embed', 'text', 'form', 'gallery'
+  content       String   // the actual content - embed code, text, form fields
+  title         String?  // for identification
+  position      Int      // for ordering
+  isVisible     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  profile       Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+// NEW MODEL FOR PRO FEATURES (Task T008)
+model CustomCSS {
+  id            String   @id @default(cuid())
+  profileId     String
+  cssCode       String   // the custom CSS
+  isLive        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  profile       Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+// NEW MODEL FOR PRO FEATURES (Task T009)
+model ContactSubmission {
+  id            String   @id @default(cuid())
+  profileId     String
+  formId        String?  // to identify which form
+  name          String?  // submitter name
+  email         String?  // submitter email
+  message       String?  // the message content
+  submittedAt   DateTime @default(now())
+  profile       Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
