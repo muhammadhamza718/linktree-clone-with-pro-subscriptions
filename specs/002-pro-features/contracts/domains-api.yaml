@@ -1,0 +1,181 @@
+openapi: 3.0.0
+info:
+  title: Custom Domains API
+  version: 1.0.0
+  description: API for custom domain management and SSL provisioning
+
+paths:
+  /api/domains:
+    get:
+      summary: Get all custom domains for a profile
+      parameters:
+        - name: profileId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of custom domains
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomDomain'
+
+    post:
+      summary: Create a new custom domain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomDomain'
+      responses:
+        '201':
+          description: Custom domain created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomDomain'
+
+  /api/domains/{id}:
+    get:
+      summary: Get a specific custom domain
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Custom domain details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomDomain'
+
+    put:
+      summary: Update custom domain settings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomDomain'
+      responses:
+        '200':
+          description: Custom domain updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomDomain'
+
+    delete:
+      summary: Delete a custom domain
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Custom domain deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: boolean
+
+  /api/domains/{id}/verify:
+    post:
+      summary: Verify DNS configuration for custom domain
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: DNS verification status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified: boolean
+                  message: string
+
+  /api/domains/{id}/ssl:
+    post:
+      summary: Provision SSL certificate for custom domain
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SSL provisioning status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  provisioned: boolean
+                  message: string
+
+components:
+  schemas:
+    CustomDomain:
+      type: object
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        domain:
+          type: string
+        verifyToken:
+          type: string
+        isVerified:
+          type: boolean
+        sslEnabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateCustomDomain:
+      type: object
+      properties:
+        profileId:
+          type: string
+        domain:
+          type: string
+      required:
+        - profileId
+        - domain
+
+    UpdateCustomDomain:
+      type: object
+      properties:
+        domain:
+          type: string
+        sslEnabled:
+          type: boolean

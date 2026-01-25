@@ -1,0 +1,161 @@
+openapi: 3.0.0
+info:
+  title: Advanced Analytics API
+  version: 1.0.0
+  description: API for advanced analytics tracking and reporting
+
+paths:
+  /api/analytics/dashboard:
+    get:
+      summary: Get analytics dashboard data
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: profileId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Analytics dashboard data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  demographics:
+                    type: object
+                    properties:
+                      countries:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            country: string
+                            count: integer
+                      devices:
+                        type: object
+                        properties:
+                          mobile: integer
+                          tablet: integer
+                          desktop: integer
+                  heatmaps:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        linkId: string
+                        clicks: integer
+                        percentage: number
+                  referrers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        source: string
+                        count: integer
+
+  /api/analytics/export:
+    post:
+      summary: Export analytics data as CSV
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profileId:
+                  type: string
+                startDate:
+                  type: string
+                  format: date
+                endDate:
+                  type: string
+                  format: date
+                dataType:
+                  type: string
+                  enum: [clicks, views, referrers, demographics]
+      responses:
+        '200':
+          description: CSV export data
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /api/analytics/track:
+    post:
+      summary: Track analytics event asynchronously
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyticsEventExtended'
+      responses:
+        '202':
+          description: Event accepted for processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted: boolean
+                  eventId: string
+
+components:
+  schemas:
+    AnalyticsEventExtended:
+      type: object
+      properties:
+        profileId:
+          type: string
+          nullable: true
+        linkId:
+          type: string
+          nullable: true
+        eventType:
+          type: string
+          enum: [profile_view, link_click]
+        ipAddress:
+          type: string
+          nullable: true
+        userAgent:
+          type: string
+          nullable: true
+        referrer:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        deviceType:
+          type: string
+          enum: [mobile, tablet, desktop]
+          nullable: true
+        browser:
+          type: string
+          nullable: true
+        os:
+          type: string
+          nullable: true
+        timezoneOffset:
+          type: integer
+          nullable: true
+      required:
+        - eventType

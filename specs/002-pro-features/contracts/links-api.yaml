@@ -1,0 +1,183 @@
+openapi: 3.0.0
+info:
+  title: Enhanced Links API
+  version: 1.0.0
+  description: API for link scheduling, password protection, and advanced options
+
+paths:
+  /api/links/scheduled:
+    get:
+      summary: Get scheduled links for a profile
+      parameters:
+        - name: profileId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of scheduled links
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduledLink'
+
+  /api/links/{id}/schedule:
+    put:
+      summary: Update link scheduling settings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleSettings'
+      responses:
+        '200':
+          description: Schedule updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledLink'
+
+  /api/links/{id}/password:
+    put:
+      summary: Update link password protection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  nullable: true
+                isAgeGated:
+                  type: boolean
+                isPinned:
+                  type: boolean
+      responses:
+        '200':
+          description: Password protection updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProtectedLink'
+
+  /api/links/{id}/verify-password:
+    post:
+      summary: Verify password for protected link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+              required:
+                - password
+      responses:
+        '200':
+          description: Password verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid: boolean
+                  sessionId: string
+
+components:
+  schemas:
+    ScheduleSettings:
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date-time
+          nullable: true
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+        timezone:
+          type: string
+          nullable: true
+      required:
+        - startDate
+        - endDate
+        - timezone
+
+    ScheduledLink:
+      type: object
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        title:
+          type: string
+        url:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        timezone:
+          type: string
+        isVisible:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProtectedLink:
+      type: object
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        title:
+          type: string
+        url:
+          type: string
+        hasPassword:
+          type: boolean
+        isAgeGated:
+          type: boolean
+        isPinned:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
