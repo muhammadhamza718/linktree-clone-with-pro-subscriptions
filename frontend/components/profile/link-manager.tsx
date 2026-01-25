@@ -132,6 +132,14 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
     await handleUpdateLink(linkId, updatedLink);
   };
 
+  const handleTogglePin = async (linkId: string) => {
+    const link = links.find(l => l.id === linkId);
+    if (!link) return;
+
+    const updatedLink = { ...link, isPinned: !link.isPinned };
+    await handleUpdateLink(linkId, { isPinned: updatedLink.isPinned });
+  };
+
   // Handle drag start
   const handleDragStart = (e: React.DragEvent, id: string) => {
     e.dataTransfer.setData('text/plain', id);
@@ -327,6 +335,7 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
                           title: (e.target as any).title.value,
                           url: (e.target as any).url.value,
                           linkType: (e.target as any).linkType.value,
+                          isPinned: (e.target as any).isPinned.checked,
                         });
                       }}
                       className="flex-1 flex items-center space-x-2"
@@ -356,6 +365,17 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
                         <option value="embed">Embed</option>
                         <option value="custom">Custom</option>
                       </select>
+                      <div className="flex items-center space-x-2">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            name="isPinned"
+                            defaultChecked={!!link.isPinned}
+                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">Pin Link</span>
+                        </label>
+                      </div>
                       <button
                         type="submit"
                         className="text-green-600 hover:text-green-900"
@@ -379,6 +399,11 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
                         {!link.isVisible && (
                           <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                             Hidden
+                          </span>
+                        )}
+                        {link.isPinned && (
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Pinned
                           </span>
                         )}
                       </div>
@@ -405,6 +430,17 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
                         link.isVisible ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />
+                  </button>
+
+                  <button
+                    onClick={() => handleTogglePin(link.id)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      link.isPinned
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {link.isPinned ? 'Pinned' : 'Pin'}
                   </button>
 
                   <button

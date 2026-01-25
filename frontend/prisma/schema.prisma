@@ -64,7 +64,7 @@ model Link {
   profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   analyticsEvents AnalyticsEvent[] // Link has many analytics events (one-to-many)
 
-  // NEW FIELDS FOR PRO FEATURES (Task T004)
+  // NEW FIELDS FOR PRO FEATURES (Task T004, T038)
   startDate      DateTime?  // for scheduling
   endDate        DateTime?  // for scheduling
   timezone       String?    // for timezone-aware scheduling

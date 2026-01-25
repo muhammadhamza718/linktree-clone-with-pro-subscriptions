@@ -1,0 +1,132 @@
+openapi: 3.0.0
+info:
+  title: Analytics API
+  version: 1.0.0
+  description: API for tracking and retrieving analytics data
+
+paths:
+  /api/analytics/track:
+    post:
+      summary: Track an analytics event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profileId:
+                  type: string
+                  description: ID of the profile being viewed
+                linkId:
+                  type: string
+                  description: ID of the link being clicked (optional)
+                eventType:
+                  type: string
+                  enum: [profile_view, link_click]
+                  description: Type of event being tracked
+                ipAddress:
+                  type: string
+                  description: IP address of the visitor
+                userAgent:
+                  type: string
+                  description: User agent string of the visitor
+                referrer:
+                  type: string
+                  description: Referring URL
+                country:
+                  type: string
+                  description: Country from IP geolocation
+                city:
+                  type: string
+                  description: City from IP geolocation
+                deviceType:
+                  type: string
+                  description: Device type (mobile, tablet, desktop)
+                browser:
+                  type: string
+                  description: Browser name
+                os:
+                  type: string
+                  description: Operating system
+              required:
+                - profileId
+                - eventType
+      responses:
+        '200':
+          description: Event tracked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                  type: boolean
+                  eventId:
+                  type: string
+
+  /api/analytics/dashboard:
+    get:
+      summary: Get analytics data for dashboard
+      parameters:
+        - name: profileId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Analytics data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalViews:
+                    type: integer
+                  totalClicks:
+                    type: integer
+                  topLinks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        linkId:
+                          type: string
+                        title:
+                          type: string
+                        clicks:
+                          type: integer
+                  visitorDemographics:
+                    type: object
+                    properties:
+                      countries:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            country:
+                              type: string
+                            count:
+                              type: integer
+                      devices:
+                        type: object
+                        properties:
+                          mobile:
+                            type: integer
+                          tablet:
+                            type: integer
+                          desktop:
+                            type: integer

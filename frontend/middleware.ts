@@ -1,18 +1,28 @@
-import { auth } from './auth/better-auth'
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import prisma from './lib/db';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  // Check for password-protected links in public profiles
+  const pathname = request.nextUrl.pathname;
+
+  // If this is a public profile route (format: /@/username), check for password-protected links
+  if (pathname.startsWith('/@/')) {
+    const pathSegments = pathname.split('/');
+    if (pathSegments.length >= 3) { // Format: /@/username[/linkId]
+      const username = pathSegments[2];
+
+      // In a real implementation, we'd check if the user has access to password-protected links
+      // For now, we'll allow the request to proceed and handle password protection at the component level
+    }
+  }
+
   // Protect dashboard routes
   const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard') ||
                           request.nextUrl.pathname.startsWith('/profile') ||
                           request.nextUrl.pathname.startsWith('/settings');
 
   if (isDashboardRoute) {
-    // For API routes we'll check the session
-    // Better Auth provides middleware that can protect routes
-    // We'll implement the protection based on Better Auth's API
-
     // Get the auth cookie from the request
     const authCookie = request.cookies.get("__better_auth_session_token");
 
