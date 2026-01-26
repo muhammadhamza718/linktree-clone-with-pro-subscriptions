@@ -55,7 +55,7 @@
 
 **Independent Test**: Access the analytics dashboard and view geographic location, device type, browser detection, and click heatmaps for profile visits and link clicks (spec.md:US1)
 
-### Tests for User Story 1 ⚠️
+### Tests for User Story 1 ⚟️
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
@@ -85,13 +85,13 @@
 
 **Independent Test**: Schedule a link to activate in the future and verify it becomes visible at the scheduled time, and schedule another to expire and verify it disappears after the scheduled end time (spec.md:US2)
 
-### Tests for User Story 2 ⚠️
+### Tests for User Story 2 ⚟️
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T026 [P] [US2] Unit test for link scheduling validation in tests/unit/link-scheduling.test.ts
-- [ ] T027 [P] [US2] Integration test for scheduled link visibility in tests/integration/scheduled-links.test.ts
-- [ ] T028 [P] [US2] E2E test for link scheduling workflow in tests/e2e/link-scheduling.test.ts
+- [X] T026 [P] [US2] Unit test for link scheduling validation in tests/unit/link-scheduling.test.ts
+- [X] T027 [P] [US2] Integration test for scheduled link visibility in tests/integration/scheduled-links.test.ts
+- [X] T028 [P] [US2] E2E test for link scheduling workflow in tests/e2e/link-scheduling.test.ts
 
 ### Implementation for User Story 2
 
@@ -100,7 +100,7 @@
 - [X] T031 [US2] Create link schedule picker component in components/links/link-schedule-picker.tsx (linktree_srd.md:180-188)
 - [X] T032 [US2] Write test -> Implement "Is link visible based on schedule?" logic in lib/link-scheduling.ts (linktree_srd.md:180-188)
 - [X] T033 [US2] Update profile rendering to respect scheduled visibility in app/@/[username]/page.tsx (linktree_srd.md:180-188)
-- [ ] T034 [US2] Add scheduled links section to link manager in components/profile/link-manager.tsx (linktree_srd.md:180-188)
+- [X] T034 [US2] Add scheduled links section to link manager in components/profile/link-manager.tsx (linktree_srd.md:180-188)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -112,13 +112,13 @@
 
 **Independent Test**: Create a password-protected link and verify it requires password entry, create an age-gated link and verify it shows age verification, and pin an important link to verify it stays at the top (spec.md:US3)
 
-### Tests for User Story 3 ⚠️
+### Tests for User Story 3 ⚟️
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T035 [P] [US3] Unit test for password protection validation in tests/unit/password-protection.test.ts
-- [ ] T036 [P] [US3] Integration test for age-gate functionality in tests/integration/age-gate.test.ts
-- [ ] T037 [P] [US3] E2E test for link pinning in tests/e2e/link-pinning.test.ts
+- [X] T035 [P] [US3] Unit test for password protection validation in tests/unit/password-protection.test.ts
+- [X] T036 [P] [US3] Integration test for age-gate functionality in tests/integration/age-gate.test.ts
+- [X] T037 [P] [US3] E2E test for link pinning in tests/e2e/link-pinning.test.ts
 
 ### Implementation for User Story 3
 
@@ -139,7 +139,7 @@
 
 **Independent Test**: Connect a custom domain and verify the profile is accessible via that domain, and apply custom CSS to verify it changes the profile appearance (spec.md:US4)
 
-### Tests for User Story 4 ⚠️
+### Tests for User Story 4 ⚟️
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
@@ -167,7 +167,7 @@
 
 **Independent Test**: Add a YouTube embed and verify it displays properly, add a contact form and verify it captures submissions, and add a text block with formatting and verify it renders correctly (spec.md:US5)
 
-### Tests for User Story 5 ⚠️
+### Tests for User Story 5 ⚟️
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
