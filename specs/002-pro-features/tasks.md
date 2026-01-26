@@ -66,10 +66,10 @@
 ### Implementation for User Story 1
 
 - [ ] T017 [P] [US1] Create AnalyticsEventExtended model with geolocation and device tracking fields in prisma/schema.prisma (spec.md:AnalyticsEventExtended entity)
-- [ ] T018 [US1] Implement analytics API route for tracking events in app/api/analytics/track/route.ts (linktree_srd.md:168-172)
-- [ ] T019 [US1] Create analytics service for processing and storing events in lib/analytics.ts (linktree_srd.md:168-172)
-- [ ] T020 [US1] Implement analytics dashboard page in app/(dashboard)/dashboard/analytics/page.tsx (linktree_srd.md:163-176)
-- [ ] T021 [US1] Create analytics dashboard component with Recharts visualizations in components/analytics/analytics-dashboard.tsx (linktree_srd.md:163-176)
+- [X] T018 [US1] Implement analytics API route for tracking events in app/api/analytics/track/route.ts (linktree_srd.md:168-172)
+- [X] T019 [US1] Create analytics service for processing and storing events in lib/analytics.ts (linktree_srd.md:168-172)
+- [X] T020 [US1] Implement analytics dashboard page in app/(dashboard)/dashboard/analytics/page.tsx (linktree_srd.md:163-176)
+- [X] T021 [US1] Create analytics dashboard component with Recharts visualizations in components/analytics/analytics-dashboard.tsx (linktree_srd.md:163-176)
 - [ ] T022 [US1] Add geographic visualization component for country/city data in components/analytics/geographic-chart.tsx (linktree_srd.md:164-167)
 - [ ] T023 [US1] Create device and browser detection component in components/analytics/device-chart.tsx (linktree_srd.md:165-167)
 - [ ] T024 [US1] Implement click heatmap visualization in components/analytics/heatmap.tsx (linktree_srd.md:169-170)
