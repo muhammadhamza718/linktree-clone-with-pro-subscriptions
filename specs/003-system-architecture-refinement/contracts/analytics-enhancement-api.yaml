@@ -1,0 +1,306 @@
+openapi: 3.0.0
+info:
+  title: Enhanced Analytics API
+  version: 1.0.0
+  description: API for advanced analytics with performance optimization
+
+paths:
+  /api/analytics/enhanced/dashboard:
+    get:
+      summary: Get enhanced analytics dashboard data
+      parameters:
+        - name: profileId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: timezone
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Enhanced analytics dashboard data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    type: object
+                    properties:
+                      totalViews:
+                        type: integer
+                      totalClicks:
+                        type: integer
+                      avgLoadTime:
+                        type: number
+                      uniqueVisitors:
+                        type: integer
+                  demographics:
+                    type: object
+                    properties:
+                      countries:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            country:
+                              type: string
+                            count:
+                              type: integer
+                      devices:
+                        type: object
+                        properties:
+                          mobile:
+                            type: integer
+                          tablet:
+                            type: integer
+                          desktop:
+                            type: integer
+                  referrers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        source:
+                          type: string
+                        count:
+                          type: integer
+                  performance:
+                    type: object
+                    properties:
+                      avgLoadTime:
+                        type: number
+                      pageSpeedInsights:
+                        type: object
+                        properties:
+                          fcp:
+                            type: number
+                          lcp:
+                            type: number
+                          cls:
+                            type: number
+
+  /api/analytics/track-async:
+    post:
+      summary: Asynchronously track analytics events
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profileId:
+                  type: string
+                linkId:
+                  type: string
+                eventType:
+                  type: string
+                  enum: [profile_view, link_click]
+                userAgent:
+                  type: string
+                referrer:
+                  type: string
+                loadTime:
+                  type: number
+                additionalData:
+                  type: object
+              required:
+                - profileId
+                - eventType
+      responses:
+        '202':
+          description: Event accepted for processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: boolean
+                  eventId:
+                    type: string
+
+  /api/github/sync-job:
+    post:
+      summary: Create or update GitHub sync job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                linkId:
+                  type: string
+                syncIntervalHours:
+                  type: integer
+                  minimum: 1
+                  maximum: 168
+              required:
+                - linkId
+                - syncIntervalHours
+      responses:
+        '201':
+          description: GitHub sync job created/updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job:
+                    $ref: '#/components/schemas/GitHubSyncJob'
+
+  /api/assets/upload:
+    post:
+      summary: Upload assets to object storage
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                profileId:
+                  type: string
+      responses:
+        '201':
+          description: Asset uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  asset:
+                    $ref: '#/components/schemas/AssetUpload'
+                  publicUrl:
+                    type: string
+
+components:
+  schemas:
+    AnalyticsEventExtended:
+      type: object
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        linkId:
+          type: string
+        eventType:
+          type: string
+          enum: [profile_view, link_click, asset_upload, security_event]
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        referrer:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        country:
+          type: string
+        city:
+          type: string
+        deviceType:
+          type: string
+          enum: [mobile, tablet, desktop]
+        browser:
+          type: string
+        os:
+          type: string
+        timezoneOffset:
+          type: integer
+        loadTimeMs:
+          type: integer
+        responseSizeBytes:
+          type: integer
+      required:
+        - eventType
+        - timestamp
+
+    GitHubSyncJob:
+      type: object
+      properties:
+        id:
+          type: string
+        linkId:
+          type: string
+        lastSyncAt:
+          type: string
+          format: date-time
+        nextSyncAt:
+          type: string
+          format: date-time
+        syncIntervalHours:
+          type: integer
+        status:
+          type: string
+          enum: [pending, in_progress, success, failed]
+        errorCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - linkId
+        - nextSyncAt
+        - syncIntervalHours
+        - status
+
+    AssetUpload:
+      type: object
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        fileName:
+          type: string
+        fileType:
+          type: string
+        fileSize:
+          type: integer
+        storageKey:
+          type: string
+        publicUrl:
+          type: string
+        uploadStatus:
+          type: string
+          enum: [uploading, processing, ready, failed]
+        uploadedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+        - profileId
+        - fileName
+        - fileType
+        - fileSize
+        - storageKey
+        - publicUrl
+        - uploadStatus

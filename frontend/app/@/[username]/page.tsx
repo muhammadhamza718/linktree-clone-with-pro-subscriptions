@@ -22,7 +22,7 @@ const ProfileView = dynamic(() => import('../../../../components/public-profile/
 });
 
 // Generate metadata for SEO
-export async function generateMetadata({ params, request }: { params: { username: string }, request: Request }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
   const { username } = params;
 
   try {
@@ -65,6 +65,10 @@ export async function generateMetadata({ params, request }: { params: { username
           user: true,
           links: {
             orderBy: { order: 'asc' },
+          },
+          richContentBlocks: {
+            where: { isVisible: true },
+            orderBy: { position: 'asc' },
           },
           theme: true,
           customCss: {
@@ -162,6 +166,10 @@ export default async function PublicProfilePage({ params }: { params: { username
           user: true,
           links: {
             orderBy: { order: 'asc' },
+          },
+          richContentBlocks: {
+            where: { isVisible: true },
+            orderBy: { position: 'asc' },
           },
           theme: true,
           customCss: {
