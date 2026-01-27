@@ -1,8 +1,36 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import prisma from './lib/db';
 
 export async function middleware(request: NextRequest) {
+  const host = request.headers.get('host');
+
+  // Handle custom domain routing
+  if (host && !host.includes('localhost') && !host.includes('.vercel.app') && !host.includes('127.0.0.1')) {
+    try {
+      // Look up the custom domain in the database
+      const customDomain = await prisma.customDomain.findUnique({
+        where: { domain: host },
+        include: {
+          profile: {
+            select: { username: true }
+          },
+        },
+      });
+
+      if (customDomain && customDomain.isVerified && customDomain.profile) {
+        // If custom domain is valid and verified, rewrite to the profile page
+        const rewritePath = `/@/${customDomain.profile.username}`;
+        const rewriteUrl = new URL(rewritePath, request.url);
+
+        return NextResponse.rewrite(rewriteUrl);
+      }
+    } catch (error) {
+      console.error('Error in custom domain middleware:', error);
+      // Proceed with normal routing if there's an error
+    }
+  }
+
   // Check for password-protected links in public profiles
   const pathname = request.nextUrl.pathname;
 

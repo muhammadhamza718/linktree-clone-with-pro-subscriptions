@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 import prisma from '../../../../lib/db';
 import dynamic from 'next/dynamic';
 import { isLinkVisible } from '../../../../lib/link-scheduling';
@@ -21,20 +22,59 @@ const ProfileView = dynamic(() => import('../../../../components/public-profile/
 });
 
 // Generate metadata for SEO
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
+export async function generateMetadata({ params, request }: { params: { username: string }, request: Request }): Promise<Metadata> {
   const { username } = params;
 
   try {
-    const profile = await prisma.profile.findUnique({
-      where: { username },
-      include: {
-        user: true,
-        links: {
-          orderBy: { order: 'asc' },
+    // Check if this is a custom domain request
+    const host = request.headers.get('host');
+    let profile;
+
+    if (host && !host.includes('localhost') && !host.includes('.vercel.app')) {
+      // Try to find profile via custom domain first
+      const customDomain = await prisma.customDomain.findUnique({
+        where: { domain: host },
+        include: {
+          profile: {
+            include: {
+              user: true,
+              links: {
+                orderBy: { order: 'asc' },
+              },
+              theme: true,
+              customCss: {
+                where: { isLive: true },
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+              },
+            },
+          },
         },
-        theme: true,
-      },
-    });
+      });
+
+      if (customDomain && customDomain.isVerified) {
+        profile = customDomain.profile;
+      }
+    }
+
+    // If no profile found via custom domain, fall back to username lookup
+    if (!profile) {
+      profile = await prisma.profile.findUnique({
+        where: { username },
+        include: {
+          user: true,
+          links: {
+            orderBy: { order: 'asc' },
+          },
+          theme: true,
+          customCss: {
+            where: { isLive: true },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
+      });
+    }
 
     if (!profile) {
       return {};
@@ -80,17 +120,58 @@ export default async function PublicProfilePage({ params }: { params: { username
   const { username } = params;
 
   try {
-    // Fetch profile data from the database
-    const profile = await prisma.profile.findUnique({
-      where: { username },
-      include: {
-        user: true,
-        links: {
-          orderBy: { order: 'asc' },
+    // For custom domain support, we need to access headers differently in Next.js App Router
+    // We'll use the headers function from next/headers
+    const headersList = headers();
+    const host = headersList.get('host');
+
+    let profile;
+
+    if (host && !host.includes('localhost') && !host.includes('.vercel.app')) {
+      // Try to find profile via custom domain first
+      const customDomain = await prisma.customDomain.findUnique({
+        where: { domain: host },
+        include: {
+          profile: {
+            include: {
+              user: true,
+              links: {
+                orderBy: { order: 'asc' },
+              },
+              theme: true,
+              customCss: {
+                where: { isLive: true },
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+              },
+            },
+          },
         },
-        theme: true,
-      },
-    });
+      });
+
+      if (customDomain && customDomain.isVerified) {
+        profile = customDomain.profile;
+      }
+    }
+
+    // If no profile found via custom domain, fall back to username lookup
+    if (!profile) {
+      profile = await prisma.profile.findUnique({
+        where: { username },
+        include: {
+          user: true,
+          links: {
+            orderBy: { order: 'asc' },
+          },
+          theme: true,
+          customCss: {
+            where: { isLive: true },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
+      });
+    }
 
     if (!profile) {
       notFound();
@@ -103,9 +184,10 @@ export default async function PublicProfilePage({ params }: { params: { username
     // Track profile view with enhanced analytics
     try {
       // Get visitor information for advanced analytics
-      const ipAddress = 'temp_ip'; // Would get from request headers
-      const userAgent = 'temp_user_agent'; // Would get from request headers
-      const referrer = 'temp_referrer'; // Would get from request headers
+      const ipAddress = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                       headersList.get('x-real-ip') || 'unknown';
+      const userAgent = headersList.get('user-agent') || 'unknown';
+      const referrer = headersList.get('referer') || 'direct';
 
       // Use the extended analytics event model with geolocation and device tracking
       await prisma.analyticsEvent.create({
@@ -116,19 +198,19 @@ export default async function PublicProfilePage({ params }: { params: { username
           userAgent,
           referrer,
           // Add advanced analytics fields for geolocation and device tracking
-          country: 'temp_country', // Would get from IP geolocation
-          city: 'temp_city', // Would get from IP geolocation
+          country: 'temp_country', // Would get from IP geolocation service
+          city: 'temp_city', // Would get from IP geolocation service
           deviceType: 'desktop', // Would get from user agent parsing
           browser: 'temp_browser', // Would get from user agent parsing
           os: 'temp_os', // Would get from user agent parsing
         },
       });
     } catch (error) {
-      // Fail silently on analytics error
+      // Fail silently on analytics error to maintain performance
       console.error('Failed to log profile view:', error);
     }
 
-    // Return profile with filtered visible links
+    // Return profile with filtered visible links and custom CSS if available
     return (
       <ProfileView profile={{...profile, links: visibleLinks}} />
     );

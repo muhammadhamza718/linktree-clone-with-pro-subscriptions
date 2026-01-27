@@ -39,6 +39,17 @@ interface ProfileViewProps {
       createdAt: Date;
       updatedAt: Date;
     }>;
+    richContentBlocks?: Array<{
+      id: string;
+      profileId: string;
+      contentType: 'embed' | 'text' | 'form' | 'gallery';
+      content: string;
+      title?: string;
+      position: number;
+      isVisible: boolean;
+      createdAt: Date;
+      updatedAt: Date;
+    }>;
     theme?: {
       id: string;
       name: string;
@@ -112,6 +123,48 @@ export default function ProfileView({ profile }: ProfileViewProps) {
             </p>
           )}
         </div>
+
+        {/* Rich Content Blocks Section */}
+        {profile.richContentBlocks && profile.richContentBlocks
+          .filter(block => block.isVisible)
+          .sort((a, b) => a.position - b.position)
+          .map((block) => (
+            <div key={block.id} className="mt-4">
+              {block.contentType === 'embed' && (
+                <div className="aspect-w-16 aspect-h-9">
+                  <iframe
+                    src={block.content}
+                    className="w-full"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                    title={block.title || 'Embedded Content'}
+                  />
+                </div>
+              )}
+              {block.contentType === 'text' && (
+                <div className="bg-white rounded-lg shadow p-4 mb-4 prose max-w-none">
+                  <h3 className="text-lg font-medium text-gray-900">{block.title}</h3>
+                  <div
+                    className="text-gray-600"
+                    dangerouslySetInnerHTML={{ __html: block.content }}
+                  />
+                </div>
+              )}
+              {block.contentType === 'form' && (
+                <div className="bg-white rounded-lg shadow p-4 mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">{block.title}</h3>
+                  <p>Rich content form would be rendered here</p>
+                </div>
+              )}
+              {block.contentType === 'gallery' && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                  <p>Gallery content would be rendered here</p>
+                </div>
+              )}
+            </div>
+          ))}
 
         {/* Links Section */}
         <div className="mt-8">
