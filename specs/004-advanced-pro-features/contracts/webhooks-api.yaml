@@ -1,0 +1,239 @@
+openapi: 3.0.0
+info:
+  title: Webhooks API
+  description: API for managing webhooks and their delivery
+  version: 1.0.0
+paths:
+  /api/webhooks:
+    post:
+      summary: Create a new webhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: Webhook endpoint URL
+                events:
+                  type: array
+                  items:
+                    type: string
+                  description: List of events to subscribe to
+                secret:
+                  type: string
+                  description: HMAC secret for signature verification
+              required:
+                - url
+                - events
+                - secret
+      responses:
+        '201':
+          description: Webhook created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpoint'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+  /api/webhooks/{id}:
+    get:
+      summary: Get a webhook by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Webhook details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpoint'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Webhook not found
+    put:
+      summary: Update a webhook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                events:
+                  type: array
+                  items:
+                    type: string
+                secret:
+                  type: string
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: Webhook updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpoint'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '404':
+          description: Webhook not found
+    delete:
+      summary: Delete a webhook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Webhook deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Webhook not found
+  /api/webhooks/{id}/test:
+    post:
+      summary: Test a webhook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Webhook test initiated
+        '401':
+          description: Unauthorized
+        '404':
+          description: Webhook not found
+  /api/webhooks/{id}/deliveries:
+    get:
+      summary: Get webhook delivery logs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Webhook delivery logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deliveries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookDelivery'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Webhook not found
+
+components:
+  schemas:
+    WebhookEndpoint:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        lastTriggered:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - url
+        - events
+        - isActive
+        - createdAt
+        - updatedAt
+    WebhookDelivery:
+      type: object
+      properties:
+        id:
+          type: string
+        payload:
+          type: object
+        statusCode:
+          type: integer
+        status:
+          type: string
+          enum: [pending, success, failed]
+        deliveredAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - payload
+        - status
+        - createdAt
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+        count:
+          type: integer
+      required:
+        - limit
+        - offset
+        - total
+        - count
