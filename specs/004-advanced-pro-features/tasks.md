@@ -42,13 +42,13 @@
   - **Files to Create/Modify**: prisma/schema.prisma
   - **Dependencies**: None
 
-- [ ] T004 [P] Design ABTest table schema with userId, testName, status, winnerVariantId, startedAt, endedAt, confidenceLevel, sampleSize (FR-011, FR-012)
+- [x] T004 [P] Design ABTest table schema with userId, testName, status, winnerVariantId, startedAt, endedAt, confidenceLevel, sampleSize (FR-011, FR-012)
   - **Acceptance Criteria**: ABTest model exists with all required fields in prisma/schema.prisma
   - **Testing Strategy**: Unit test for schema validation
   - **Files to Create/Modify**: prisma/schema.prisma
   - **Dependencies**: None
 
-- [ ] T005 [P] Design TeamMember table schema with profileId, userId, role, invitedBy, invitedAt, acceptedAt, isActive (FR-015, FR-016)
+- [x] T005 [P] Design TeamMember table schema with profileId, userId, role, invitedBy, invitedAt, acceptedAt, isActive (FR-015, FR-016)
   - **Acceptance Criteria**: TeamMember model exists with all required fields in prisma/schema.prisma
   - **Testing Strategy**: Unit test for schema validation
   - **Files to Create/Modify**: prisma/schema.prisma

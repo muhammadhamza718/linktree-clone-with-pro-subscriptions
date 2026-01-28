@@ -256,6 +256,25 @@ model ABTest {
   winnerVariant  LinkVariant? @relation(fields: [winnerVariantId], references: [id], onDelete: SetNull)
 }
 
+// TeamMember: Team member invitation and access record with role and permissions
+model TeamMember {
+  id          String   @id @default(cuid())
+  profileId   String
+  userId      String   // ID of the invited team member
+  role        String   // 'owner', 'editor', 'viewer'
+  invitedBy   String   // ID of user who sent invitation
+  invitedAt   DateTime @default(now())
+  acceptedAt  DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitedByUser User   @relation("InvitedByRelation", fields: [invitedBy], references: [id], onDelete: Restrict)
+}
+
 // NEW MODELS FOR ADVANCED PRO FEATURES (Phase 1: Database Schema & Models)
 
 // WebhookEndpoint: Stores user-configured webhook endpoints for external integrations
