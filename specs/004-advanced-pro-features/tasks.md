@@ -54,25 +54,25 @@
   - **Files to Create/Modify**: prisma/schema.prisma
   - **Dependencies**: None
 
-- [ ] T006 [P] Design ActivityLog table schema with profileId, userId, action, entityType, entityId, changes, ipAddress, userAgent, timestamp (FR-018)
+- [x] T006 [P] Design ActivityLog table schema with profileId, userId, action, entityType, entityId, changes, ipAddress, userAgent, timestamp (FR-018)
   - **Acceptance Criteria**: ActivityLog model exists with all required fields in prisma/schema.prisma
   - **Testing Strategy**: Unit test for schema validation
   - **Files to Create/Modify**: prisma/schema.prisma
   - **Dependencies**: None
 
-- [ ] T007 [P] Design BrandKitAsset table schema with profileId, assetType, assetUrl, assetName, isShared, createdBy (FR-019)
+- [x] T007 [P] Design BrandKitAsset table schema with profileId, assetType, assetUrl, assetName, isShared, createdBy (FR-019)
   - **Acceptance Criteria**: BrandKitAsset model exists with all required fields in prisma/schema.prisma
   - **Testing Strategy**: Unit test for schema validation
   - **Files to Create/Modify**: prisma/schema.prisma
   - **Dependencies**: None
 
-- [ ] T008 [P] Run 'npx prisma migrate dev' and verify migration success (FR-001, FR-002, FR-003, FR-004, FR-008, FR-009, FR-011, FR-012, FR-015, FR-016, FR-018, FR-019)
+- [x] T008 [P] Run 'npx prisma migrate dev' and verify migration success (FR-001, FR-002, FR-003, FR-004, FR-008, FR-009, FR-011, FR-012, FR-015, FR-016, FR-018, FR-019)
   - **Acceptance Criteria**: Database migration runs successfully with all new tables created
   - **Testing Strategy**: Manual verification of database tables
   - **Files to Create/Modify**: None (database)
   - **Dependencies**: T001, T002, T003, T004, T005, T006, T007
 
-- [ ] T009 [P] Create Prisma seed scripts for test data (FR-001, FR-002, FR-003, FR-004, FR-008, FR-009, FR-011, FR-012, FR-015, FR-016, FR-018, FR-019)
+- [x] T009 [P] Create Prisma seed scripts for test data (FR-001, FR-002, FR-003, FR-004, FR-008, FR-009, FR-011, FR-012, FR-015, FR-016, FR-018, FR-019)
   - **Acceptance Criteria**: Seed script populates database with test data for all new entities
   - **Testing Strategy**: Run seed script and verify data exists
   - **Files to Create/Modify**: prisma/seed.ts
