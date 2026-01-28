@@ -24,9 +24,10 @@ model User {
   // NEW RELATIONSHIPS FOR PRO FEATURES
   webhookEndpoints WebhookEndpoint[]
   abTests         ABTest[]
+  createdBrandKitAssets BrandKitAsset[]
+  activityLogs    ActivityLog[]  // User can be associated with activity logs
   teamMemberships TeamMember[] @relation("UserTeamMembership")
   invitedTeamMembers TeamMember[] @relation("InvitedByRelation")
-  createdBrandKitAssets BrandKitAsset[] @relation("CreatorAssets")
 }
 
 model Profile {
@@ -54,9 +55,9 @@ model Profile {
   contactSubmissions ContactSubmission[] // Profile has many contact submissions
 
   // NEW RELATIONSHIPS FOR ADVANCED PRO FEATURES
-  teamMemberships TeamMember[] @relation("ProfileTeamMembership")
-  activityLogs ActivityLog[]
-  brandKitAssets BrandKitAsset[] @relation("ProfileAssets")
+  teamMembers   TeamMember[]
+  activityLogs  ActivityLog[]
+  brandKitAssets BrandKitAsset[]
 }
 
 model Link {
@@ -85,7 +86,7 @@ model Link {
   isPinned       Boolean    @default(false) // for link pinning
 
   // NEW RELATIONSHIPS FOR ADVANCED PRO FEATURES
-  linkVariants   LinkVariant[] @relation("LinkVariants")
+  linkVariants   LinkVariant[]
 }
 
 model Theme {
@@ -232,7 +233,8 @@ model LinkVariant {
 
   // Relations
   link                  Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
-  abTest                ABTest?  @relation(fields: [abTestId], references: [id], onDelete: SetNull)
+  abTest                ABTest?  @relation("ABTestVariants", fields: [abTestId], references: [id], onDelete: SetNull)
+  wonABTests            ABTest?  @relation("WinnerVariant") // Reverse relation for ABTest.winnerVariant
 }
 
 // ABTest: A/B test configuration with traffic split ratios and statistical data
@@ -241,7 +243,7 @@ model ABTest {
   userId         String
   testName       String        // Name of the A/B test
   status         String        // 'draft', 'running', 'paused', 'completed'
-  winnerVariantId String?      // ID of winning variant (when test is completed)
+  winnerVariantId String? @unique // ID of winning variant (when test is completed) - must be unique for one-to-one relation
   startedAt      DateTime?
   endedAt        DateTime?
   confidenceLevel Float?       // Statistical confidence level
@@ -252,7 +254,7 @@ model ABTest {
   // Relations
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   variants       LinkVariant[] @relation("ABTestVariants")
-  winnerVariant  LinkVariant? @relation(fields: [winnerVariantId], references: [id], onDelete: SetNull)
+  winnerVariant  LinkVariant? @relation("WinnerVariant", fields: [winnerVariantId], references: [id], onDelete: SetNull)
 }
 
 // TeamMember: Team member invitation and access record with role and permissions
@@ -270,7 +272,7 @@ model TeamMember {
 
   // Relations
   profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User     @relation("UserTeamMembership", fields: [userId], references: [id], onDelete: Cascade)
   invitedByUser User   @relation("InvitedByRelation", fields: [invitedBy], references: [id], onDelete: Restrict)
 }
 
