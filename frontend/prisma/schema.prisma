@@ -235,7 +235,7 @@ model ABTest {
 
   // Relations
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  variants       LinkVariant[]
+  variants       LinkVariant[] @relation("ABTestVariants")
   winnerVariant  LinkVariant? @relation(fields: [winnerVariantId], references: [id], onDelete: SetNull)
 }
 
