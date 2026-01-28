@@ -170,7 +170,7 @@ model WebhookEndpoint {
   id            String   @id @default(cuid())
   userId        String
   url           String   // Webhook endpoint URL
-  events        String[] // Events to trigger on (stored as JSON array)
+  events        String   // Events to trigger on (stored as JSON string)
   secret        String   // HMAC secret for signature verification
   isActive      Boolean  @default(true)
   retryCount    Int      @default(0)
@@ -204,6 +204,7 @@ model WebhookDelivery {
 model LinkVariant {
   id                    String   @id @default(cuid())
   linkId                String
+  abTestId              String?  // Add this field to establish the relation
   variantName           String   // Name of this variant
   title                 String   // Different title for A/B testing
   iconUrl               String?  // Different icon for A/B testing
@@ -216,7 +217,7 @@ model LinkVariant {
 
   // Relations
   link                  Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
-  abTest                ABTest?
+  abTest                ABTest?  @relation(fields: [abTestId], references: [id], onDelete: SetNull)
 }
 
 // ABTest: A/B test configuration with traffic split ratios and statistical data
@@ -237,6 +238,36 @@ model ABTest {
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   variants       LinkVariant[] @relation("ABTestVariants")
   winnerVariant  LinkVariant? @relation(fields: [winnerVariantId], references: [id], onDelete: SetNull)
+}
+
+// Link: Add back reference to LinkVariant
+model Link {
+  id         String   @id @default(cuid())
+  profileId  String
+  title      String   // required
+  url        String   // required, validated URL
+  linkType   String?  // 'social', 'website', 'project', 'email', 'phone', 'embed', 'custom'
+  thumbnail  String?
+  icon       String?
+  order      Int      // required, for sorting
+  isVisible  Boolean  @default(true)
+  isFeatured Boolean  @default(false)
+  githubRepo String?  // for GitHub integration
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  analyticsEvents AnalyticsEvent[] // Link has many analytics events (one-to-many)
+
+  // NEW FIELDS FOR PRO FEATURES (Task T004, T038)
+  startDate      DateTime?  // for scheduling
+  endDate        DateTime?  // for scheduling
+  timezone       String?    // for timezone-aware scheduling
+  passwordHash   String?    // for password protection
+  isAgeGated     Boolean    @default(false) // for age-gating
+  isPinned       Boolean    @default(false) // for link pinning
+
+  // Relation to LinkVariant for A/B testing
+  linkVariants   LinkVariant[] @relation("LinkVariants")
 }
 
 // TeamMember: Team member invitation and access record with role and permissions
@@ -292,4 +323,97 @@ model BrandKitAsset {
   // Relations
   profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   creator     User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+}
+
+// Add relations to existing models to resolve the errors
+
+// Update User model to include relations to new models
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  profile       Profile?
+  themes        Theme[]  // User has many themes (one-to-many relation)
+
+  // New relations for advanced features
+  webhookEndpoints WebhookEndpoint[]
+  abTests         ABTest[]
+  teamMemberships TeamMember[] @relation("UserTeamMembership")
+  invitedTeamMembers TeamMember[] @relation("InvitedByRelation")
+  createdBrandKitAssets BrandKitAsset[] @relation("CreatorAssets")
+}
+
+// Update Profile model to include relations to new models
+model Profile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  username      String   @unique // 3-30 chars, alphanumeric + hyphens
+  displayName   String
+  bio           String?  // max 280 chars
+  avatar        String?
+  avatarLayout  String?  @default("classic") // 'classic', 'hero'
+  title         String?
+  themeId       String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links         Link[]
+  theme         Theme?   @relation(fields: [themeId], references: [id])
+
+  // NEW RELATIONSHIPS FOR PRO FEATURES
+  customDomain  CustomDomain? // One-to-one relationship with custom domain
+  analyticsEvents AnalyticsEvent[] // Profile has many analytics events
+  richContentBlocks RichContentBlock[] // Profile has many rich content blocks
+  customCss     CustomCSS[] // Profile has many custom CSS entries
+  contactSubmissions ContactSubmission[] // Profile has many contact submissions
+
+  // New relations for advanced features
+  teamMemberships TeamMember[] @relation("ProfileTeamMembership")
+  activityLogs ActivityLog[]
+  brandKitAssets BrandKitAsset[] @relation("ProfileAssets")
+}
+
+// Update LinkVariant to include the missing field and relation
+model LinkVariant {
+  id                    String   @id @default(cuid())
+  linkId                String
+  abTestId              String?  // Add this field to establish the relation
+  variantName           String   // Name of this variant
+  title                 String   // Different title for A/B testing
+  iconUrl               String?  // Different icon for A/B testing
+  description           String?  // Different description for A/B testing
+  trafficSplitPercent   Int      // Percentage of traffic to this variant (0-100)
+  clickCount            Int      @default(0) // Track clicks for statistical analysis
+  viewCount             Int      @default(0) // Track views for CTR calculation
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  link                  Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  abTest                ABTest?  @relation(fields: [abTestId], references: [id], onDelete: SetNull)
+}
+
+// Update ABTest model to include the missing field and relation
+model ABTest {
+  id             String        @id @default(cuid())
+  userId         String
+  testName       String        // Name of the A/B test
+  status         String        // 'draft', 'running', 'paused', 'completed'
+  winnerVariantId String?      // ID of winning variant (when test is completed)
+  startedAt      DateTime?
+  endedAt        DateTime?
+  confidenceLevel Float?       // Statistical confidence level
+  sampleSize     Int          @default(0) // Number of samples collected
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Relations
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variants       LinkVariant[] @relation("ABTestVariants")
+  winnerVariant  LinkVariant? @relation(fields: [winnerVariantId], references: [id], onDelete: SetNull)
 }
