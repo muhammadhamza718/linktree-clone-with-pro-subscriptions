@@ -24,19 +24,19 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T001 [P] Design Webhook table schema with user_id, url, events, secret, is_active, retry_count, last_triggered_at (FR-001, FR-002, FR-003)
+- [x] T001 [P] Design Webhook table schema with user_id, url, events, secret, is_active, retry_count, last_triggered_at (FR-001, FR-002, FR-003)
   - **Acceptance Criteria**: WebhookEndpoint model exists with all required fields in prisma/schema.prisma
   - **Testing Strategy**: Unit test for schema validation
   - **Files to Create/Modify**: prisma/schema.prisma
   - **Dependencies**: None
 
-- [ ] T002 [P] Design WebhookDelivery table schema with webhookId, payload, statusCode, response, attemptCount, status, deliveredAt (FR-004)
+- [x] T002 [P] Design WebhookDelivery table schema with webhookId, payload, statusCode, response, attemptCount, status, deliveredAt (FR-004)
   - **Acceptance Criteria**: WebhookDelivery model exists with all required fields in prisma/schema.prisma
   - **Testing Strategy**: Unit test for schema validation
   - **Files to Create/Modify**: prisma/schema.prisma
   - **Dependencies**: T001
 
-- [ ] T003 [P] Design LinkVariant table schema with linkId, variantName, title, iconUrl, trafficSplitPercent, clickCount, viewCount (FR-008, FR-009)
+- [x] T003 [P] Design LinkVariant table schema with linkId, variantName, title, iconUrl, trafficSplitPercent, clickCount, viewCount (FR-008, FR-009)
   - **Acceptance Criteria**: LinkVariant model exists with all required fields in prisma/schema.prisma
   - **Testing Strategy**: Unit test for schema validation
   - **Files to Create/Modify**: prisma/schema.prisma
