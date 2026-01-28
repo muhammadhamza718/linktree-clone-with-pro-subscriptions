@@ -162,3 +162,134 @@ model ContactSubmission {
   submittedAt   DateTime @default(now())
   profile       Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
+
+// NEW MODELS FOR ADVANCED PRO FEATURES (Phase 1: Database Schema & Models)
+
+// WebhookEndpoint: Stores user-configured webhook endpoints for external integrations
+model WebhookEndpoint {
+  id            String   @id @default(cuid())
+  userId        String
+  url           String   // Webhook endpoint URL
+  events        String[] // Events to trigger on (stored as JSON array)
+  secret        String   // HMAC secret for signature verification
+  isActive      Boolean  @default(true)
+  retryCount    Int      @default(0)
+  lastTriggered DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries    WebhookDelivery[]
+}
+
+// WebhookDelivery: Records of webhook delivery attempts with status and response
+model WebhookDelivery {
+  id           String   @id @default(cuid())
+  webhookId    String
+  payload      Json     // Webhook payload data
+  statusCode   Int?     // Response status from webhook endpoint
+  response     String?  // Response body from webhook endpoint
+  attemptCount Int      @default(0)
+  status       String   // 'pending', 'success', 'failed'
+  deliveredAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  webhook      WebhookEndpoint @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+}
+
+// LinkVariant: Alternative versions of the same link for A/B testing
+model LinkVariant {
+  id                    String   @id @default(cuid())
+  linkId                String
+  variantName           String   // Name of this variant
+  title                 String   // Different title for A/B testing
+  iconUrl               String?  // Different icon for A/B testing
+  description           String?  // Different description for A/B testing
+  trafficSplitPercent   Int      // Percentage of traffic to this variant (0-100)
+  clickCount            Int      @default(0) // Track clicks for statistical analysis
+  viewCount             Int      @default(0) // Track views for CTR calculation
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  link                  Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  abTest                ABTest?
+}
+
+// ABTest: A/B test configuration with traffic split ratios and statistical data
+model ABTest {
+  id             String        @id @default(cuid())
+  userId         String
+  testName       String        // Name of the A/B test
+  status         String        // 'draft', 'running', 'paused', 'completed'
+  winnerVariantId String?      // ID of winning variant (when test is completed)
+  startedAt      DateTime?
+  endedAt        DateTime?
+  confidenceLevel Float?       // Statistical confidence level
+  sampleSize     Int          @default(0) // Number of samples collected
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Relations
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variants       LinkVariant[]
+  winnerVariant  LinkVariant? @relation(fields: [winnerVariantId], references: [id], onDelete: SetNull)
+}
+
+// TeamMember: Team member invitation and access record with role and permissions
+model TeamMember {
+  id          String   @id @default(cuid())
+  profileId   String
+  userId      String   // ID of the invited team member
+  role        String   // 'owner', 'editor', 'viewer'
+  invitedBy   String   // ID of user who sent invitation
+  invitedAt   DateTime @default(now())
+  acceptedAt  DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitedByUser User   @relation("InvitedByRelation", fields: [invitedBy], references: [id], onDelete: Restrict)
+}
+
+// ActivityLog: Audit trail of all profile changes with user, action, and timestamp
+model ActivityLog {
+  id          String   @id @default(cuid())
+  profileId   String
+  userId      String?  // User who made the change (nullable for system actions)
+  action      String   // Action performed (create, update, delete, invite, etc.)
+  entityType  String   // Type of entity (link, profile, theme, webhook, etc.)
+  entityId    String   // ID of the entity affected
+  changes     Json?    // JSON of what changed
+  ipAddress   String?  // IP address of the user (hashed for privacy)
+  userAgent   String?  // User agent of the user
+  timestamp   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// BrandKitAsset: Shared brand assets (colors, logos, media) accessible to team members
+model BrandKitAsset {
+  id          String   @id @default(cuid())
+  profileId   String
+  assetType   String   // 'color_palette', 'logo', 'media', 'font', etc.
+  assetUrl    String   // URL to the asset
+  assetName   String   // Display name for the asset
+  isShared    Boolean  @default(true) // Whether this is shared with team
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  creator     User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+}
