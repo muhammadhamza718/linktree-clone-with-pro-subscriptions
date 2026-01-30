@@ -28,7 +28,7 @@ A Linktree clone with pro subscription features built with Next.js 16.1.4, React
 - Node.js 18+
 - PostgreSQL database
 
-### Installation
+## Installation
 
 1. Clone the repository:
    ```bash
