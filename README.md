@@ -19,7 +19,7 @@ A Linktree clone with pro subscription features built with Next.js 16.1.4, React
 - **Styling**: Tailwind CSS 4, shadcn/ui
 - **Authentication**: Better Auth
 - **Database**: PostgreSQL with Prisma ORM
-- **Deployment**: Vercel ready
+- **Deployment**: Vercel
 
 ## Getting Started
 
