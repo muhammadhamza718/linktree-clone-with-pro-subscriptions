@@ -10,6 +10,7 @@ import { WebhookEventEmitter } from "../services/webhooks/event-emitter";
 export interface AnalyticsTrackData {
   profileId?: string;
   linkId?: string;
+  variantId?: string;
   eventType: "profile_view" | "link_click";
   ipAddress?: string;
   userAgent?: string;
@@ -31,6 +32,7 @@ export async function trackAnalyticsEvent(
       data: {
         profileId: data.profileId,
         linkId: data.linkId,
+        variantId: data.variantId,
         eventType: data.eventType,
         ipAddress: data.ipAddress,
         userAgent: data.userAgent,
@@ -43,6 +45,15 @@ export async function trackAnalyticsEvent(
         timezoneOffset: data.timezoneOffset,
       },
     });
+
+    // If it's a link click with a variant, record it in the A/B test service
+    if (data.eventType === "link_click" && data.variantId) {
+      const { TrafficSplitter } =
+        await import("../services/ab-testing/traffic-splitter");
+      TrafficSplitter.recordClick(data.variantId).catch((err) =>
+        console.error("A/B click tracking failed:", err),
+      );
+    }
 
     // Trigger Webhook Event if profileId is present
     if (data.profileId) {
@@ -160,9 +171,9 @@ export async function getAnalyticsDashboard(
       ]);
 
     // Process demographic data
-    const countries = demographics.reduce((acc: any[], item) => {
+    const countries = demographics.reduce((acc: any[], item: any) => {
       const existingCountry = acc.find(
-        (country) => country.country === item.country,
+        (country: any) => country.country === item.country,
       );
       if (existingCountry) {
         existingCountry.count += item._count.country;
@@ -177,7 +188,7 @@ export async function getAnalyticsDashboard(
 
     // Process device data
     const deviceCounts = demographics.reduce(
-      (acc: any, item) => {
+      (acc: any, item: any) => {
         if (item.deviceType) {
           acc[item.deviceType] =
             (acc[item.deviceType] || 0) + item._count.country;
@@ -189,15 +200,15 @@ export async function getAnalyticsDashboard(
 
     // Process referrers
     const referrerData = referrers
-      .filter((item) => item.referrer)
-      .map((item) => ({
+      .filter((item: any) => item.referrer)
+      .map((item: any) => ({
         source: item.referrer,
         count: item._count.referrer,
       }));
 
     // Process heatmaps
     const linkHeatmaps = await Promise.all(
-      heatmaps.map(async (heatmap) => {
+      heatmaps.map(async (heatmap: any) => {
         if (!heatmap.linkId) return null;
 
         const link = await prisma.link.findUnique({
@@ -219,13 +230,15 @@ export async function getAnalyticsDashboard(
       totalViews,
       totalClicks,
       demographics: {
-        countries: countries.sort((a, b) => b.count - a.count).slice(0, 10), // Top 10 countries
+        countries: countries
+          .sort((a: any, b: any) => b.count - a.count)
+          .slice(0, 10), // Top 10 countries
         devices: deviceCounts,
       },
       referrers: referrerData,
       heatmaps: linkHeatmaps
         .filter(Boolean)
-        .sort((a, b) => b.clicks - a.clicks)
+        .sort((a: any, b: any) => b.clicks! - a.clicks!)
         .slice(0, 10), // Top 10 links
     };
   } catch (error) {

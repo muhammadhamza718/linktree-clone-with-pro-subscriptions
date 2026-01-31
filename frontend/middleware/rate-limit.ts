@@ -30,7 +30,7 @@ export function rateLimit(
 
 export async function webhookRateLimitMiddleware(req: NextRequest) {
   // Use IP address or UserID for rate limiting
-  const ip = req.ip || "unknown";
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
   const { success, remaining } = rateLimit(`webhook:${ip}`);
 
   if (!success) {

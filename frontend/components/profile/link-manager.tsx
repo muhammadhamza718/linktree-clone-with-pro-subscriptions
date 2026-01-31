@@ -1,19 +1,22 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { validateLink } from '../../lib/validations';
+import { useState } from "react";
+import { validateLink } from "../../lib/validations";
 
 interface LinkManagerProps {
   initialLinks: any[];
   onUpdateLinks: (links: any[]) => void;
 }
 
-export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManagerProps) {
+export default function LinkManager({
+  initialLinks,
+  onUpdateLinks,
+}: LinkManagerProps) {
   const [links, setLinks] = useState(initialLinks);
   const [newLink, setNewLink] = useState({
-    title: '',
-    url: '',
-    linkType: 'website' as string,
+    title: "",
+    url: "",
+    linkType: "website" as string,
     isVisible: true,
   });
   const [errors, setErrors] = useState<string[]>([]);
@@ -42,10 +45,10 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
 
     try {
       // Add to database
-      const response = await fetch('/api/links', {
-        method: 'POST',
+      const response = await fetch("/api/links", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...linkData,
@@ -54,7 +57,7 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add link');
+        throw new Error("Failed to add link");
       }
 
       const result = await response.json();
@@ -66,66 +69,66 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
 
       // Reset form
       setNewLink({
-        title: '',
-        url: '',
-        linkType: 'website',
+        title: "",
+        url: "",
+        linkType: "website",
         isVisible: true,
       });
       setIsAdding(false);
     } catch (error) {
-      setErrors(['Failed to add link']);
+      setErrors(["Failed to add link"]);
     }
   };
 
   const handleUpdateLink = async (linkId: string, updatedData: any) => {
     try {
       const response = await fetch(`/api/links/${linkId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(updatedData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update link');
+        throw new Error("Failed to update link");
       }
 
       const result = await response.json();
 
       // Update local state
-      const updatedLinks = links.map(link =>
-        link.id === linkId ? { ...link, ...updatedData } : link
+      const updatedLinks = links.map((link) =>
+        link.id === linkId ? { ...link, ...updatedData } : link,
       );
       setLinks(updatedLinks);
       onUpdateLinks(updatedLinks);
       setEditingLinkId(null);
     } catch (error) {
-      setErrors(['Failed to update link']);
+      setErrors(["Failed to update link"]);
     }
   };
 
   const handleDeleteLink = async (linkId: string) => {
     try {
       const response = await fetch(`/api/links/${linkId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete link');
+        throw new Error("Failed to delete link");
       }
 
       // Remove from local state
-      const updatedLinks = links.filter(link => link.id !== linkId);
+      const updatedLinks = links.filter((link) => link.id !== linkId);
       setLinks(updatedLinks);
       onUpdateLinks(updatedLinks);
     } catch (error) {
-      setErrors(['Failed to delete link']);
+      setErrors(["Failed to delete link"]);
     }
   };
 
   const handleToggleVisibility = async (linkId: string) => {
-    const link = links.find(l => l.id === linkId);
+    const link = links.find((l) => l.id === linkId);
     if (!link) return;
 
     const updatedLink = { ...link, isVisible: !link.isVisible };
@@ -133,7 +136,7 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
   };
 
   const handleTogglePin = async (linkId: string) => {
-    const link = links.find(l => l.id === linkId);
+    const link = links.find((l) => l.id === linkId);
     if (!link) return;
 
     const updatedLink = { ...link, isPinned: !link.isPinned };
@@ -142,7 +145,7 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
 
   // Handle drag start
   const handleDragStart = (e: React.DragEvent, id: string) => {
-    e.dataTransfer.setData('text/plain', id);
+    e.dataTransfer.setData("text/plain", id);
     setDraggingId(id);
   };
 
@@ -154,10 +157,10 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
   // Handle drop
   const handleDrop = (e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
-    const draggedId = e.dataTransfer.getData('text/plain');
+    const draggedId = e.dataTransfer.getData("text/plain");
     if (!draggedId) return;
 
-    const draggedIndex = links.findIndex(link => link.id === draggedId);
+    const draggedIndex = links.findIndex((link) => link.id === draggedId);
     if (draggedIndex === -1 || draggedIndex === targetIndex) {
       setDraggingId(null);
       return;
@@ -184,17 +187,17 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
         order: index,
       }));
 
-      fetch('/api/links/reorder', {
-        method: 'PUT',
+      fetch("/api/links/reorder", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ linkOrder }),
-      }).catch(error => {
-        console.error('Failed to update link order:', error);
+      }).catch((error) => {
+        console.error("Failed to update link order:", error);
       });
     } catch (error) {
-      console.error('Failed to update link order:', error);
+      console.error("Failed to update link order:", error);
     }
 
     setDraggingId(null);
@@ -224,15 +227,21 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
           onClick={() => setIsAdding(!isAdding)}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
-          {isAdding ? 'Cancel' : 'Add Link'}
+          {isAdding ? "Cancel" : "Add Link"}
         </button>
       </div>
 
       {isAdding && (
-        <form onSubmit={handleAddLink} className="bg-white shadow rounded-lg p-6 mb-6">
+        <form
+          onSubmit={handleAddLink}
+          className="bg-white shadow rounded-lg p-6 mb-6"
+        >
           <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
             <div className="sm:col-span-3">
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="title"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Link Title *
               </label>
               <input
@@ -240,14 +249,19 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
                 id="title"
                 required
                 value={newLink.title}
-                onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
+                onChange={(e) =>
+                  setNewLink({ ...newLink, title: e.target.value })
+                }
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="e.g. My Portfolio"
               />
             </div>
 
             <div className="sm:col-span-3">
-              <label htmlFor="url" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="url"
+                className="block text-sm font-medium text-gray-700"
+              >
                 URL *
               </label>
               <input
@@ -255,20 +269,27 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
                 id="url"
                 required
                 value={newLink.url}
-                onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                onChange={(e) =>
+                  setNewLink({ ...newLink, url: e.target.value })
+                }
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="https://example.com"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label htmlFor="linkType" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="linkType"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Link Type
               </label>
               <select
                 id="linkType"
                 value={newLink.linkType}
-                onChange={(e) => setNewLink({ ...newLink, linkType: e.target.value })}
+                onChange={(e) =>
+                  setNewLink({ ...newLink, linkType: e.target.value })
+                }
                 className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               >
                 <option value="website">Website</option>
@@ -286,10 +307,15 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
                 id="isVisible"
                 type="checkbox"
                 checked={newLink.isVisible}
-                onChange={(e) => setNewLink({ ...newLink, isVisible: e.target.checked })}
+                onChange={(e) =>
+                  setNewLink({ ...newLink, isVisible: e.target.checked })
+                }
                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
-              <label htmlFor="isVisible" className="ml-2 block text-sm text-gray-900">
+              <label
+                htmlFor="isVisible"
+                className="ml-2 block text-sm text-gray-900"
+              >
                 Visible on profile
               </label>
             </div>
@@ -315,14 +341,16 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
               onDragStart={(e) => handleDragStart(e, link.id)}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, index)}
-              className={`bg-white ${draggingId === link.id ? 'opacity-50' : ''}`}
+              className={`bg-white ${draggingId === link.id ? "opacity-50" : ""}`}
             >
               <div className="px-4 py-4 sm:px-6 flex items-center justify-between">
                 <div className="flex items-center">
-                  <div
-                    className="cursor-move mr-4 text-gray-400 hover:text-gray-600"
-                  >
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="cursor-move mr-4 text-gray-400 hover:text-gray-600">
+                    <svg
+                      className="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
                       <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                     </svg>
                   </div>
@@ -373,7 +401,9 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
                             defaultChecked={!!link.isPinned}
                             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                           />
-                          <span className="ml-2 text-sm text-gray-700">Pin Link</span>
+                          <span className="ml-2 text-sm text-gray-700">
+                            Pin Link
+                          </span>
                         </label>
                       </div>
                       <button
@@ -416,47 +446,153 @@ export default function LinkManager({ initialLinks, onUpdateLinks }: LinkManager
                   )}
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handleToggleVisibility(link.id)}
-                    className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none ${
-                      link.isVisible ? 'bg-indigo-600' : 'bg-gray-200'
-                    }`}
-                    role="switch"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
-                        link.isVisible ? 'translate-x-5' : 'translate-x-0'
+                <div className="flex flex-col items-end space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleToggleVisibility(link.id)}
+                      className={`relative inline-flex shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none ${
+                        link.isVisible ? "bg-indigo-600" : "bg-gray-200"
                       }`}
-                    />
-                  </button>
+                      role="switch"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
+                          link.isVisible ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
 
-                  <button
-                    onClick={() => handleTogglePin(link.id)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      link.isPinned
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {link.isPinned ? 'Pinned' : 'Pin'}
-                  </button>
+                    <button
+                      onClick={() => handleTogglePin(link.id)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        link.isPinned
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {link.isPinned ? "Pinned" : "Pin"}
+                    </button>
 
-                  <button
-                    onClick={() => setEditingLinkId(link.id)}
-                    className="text-indigo-600 hover:text-indigo-900"
-                  >
-                    Edit
-                  </button>
+                    <button
+                      onClick={() => setEditingLinkId(link.id)}
+                      className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+                    >
+                      Edit
+                    </button>
 
+                    <button
+                      onClick={() => handleDeleteLink(link.id)}
+                      className="text-red-600 hover:text-red-900 text-sm font-medium"
+                    >
+                      Delete
+                    </button>
+                  </div>
+
+                  {/* A/B Testing Section */}
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => {
+                        const el = document.getElementById(
+                          `ab-test-${link.id}`,
+                        );
+                        if (el) el.classList.toggle("hidden");
+                      }}
+                      className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 transition-colors"
+                    >
+                      A/B Testing{" "}
+                      {link.linkVariants?.length > 0
+                        ? `(${link.linkVariants.length})`
+                        : ""}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* A/B Variants Detail Section */}
+              <div
+                id={`ab-test-${link.id}`}
+                className="hidden px-4 py-4 bg-purple-50 border-t border-purple-100"
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-sm font-bold text-purple-900 uppercase tracking-tight">
+                    Experimental Variants
+                  </h4>
                   <button
-                    onClick={() => handleDeleteLink(link.id)}
-                    className="text-red-600 hover:text-red-900"
+                    onClick={async () => {
+                      const name = prompt(
+                        'Variant Name (e.g., "Alternative Title")',
+                      );
+                      const title = prompt("Alternative Link Title");
+                      if (!name || !title) return;
+
+                      try {
+                        const resp = await fetch("/api/ab-tests", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            testName: `Test for ${link.title}`,
+                            linkId: link.id,
+                            variants: [{ name, title, split: 50 }],
+                          }),
+                        });
+                        if (resp.ok) window.location.reload();
+                      } catch (err) {
+                        alert("Failed to create variant");
+                      }
+                    }}
+                    className="text-[10px] font-bold bg-purple-600 text-white px-2 py-1 rounded uppercase"
                   >
-                    Delete
+                    Add Variant
                   </button>
                 </div>
+
+                {link.linkVariants && link.linkVariants.length > 0 ? (
+                  <div className="space-y-2">
+                    {link.linkVariants.map((v: any) => (
+                      <div
+                        key={v.id}
+                        className="flex justify-between items-center bg-white p-2 rounded border border-purple-200 text-xs shadow-sm"
+                      >
+                        <div className="flex-1">
+                          <span className="font-bold text-purple-700">
+                            {v.variantName}:
+                          </span>
+                          <span className="ml-2 text-gray-600 italic">
+                            "{v.title}"
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="flex flex-col items-center">
+                            <span className="text-[10px] text-gray-400 font-bold uppercase">
+                              CTR
+                            </span>
+                            <span className="font-mono">
+                              {v.viewCount > 0
+                                ? ((v.clickCount / v.viewCount) * 100).toFixed(
+                                    1,
+                                  )
+                                : 0}
+                              %
+                            </span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span className="text-[10px] text-gray-400 font-bold uppercase">
+                              Traffic
+                            </span>
+                            <span className="font-bold">
+                              {v.trafficSplitPercent}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-purple-400 italic">
+                    No variants created for this link yet.
+                  </p>
+                )}
               </div>
             </li>
           ))}

@@ -120,13 +120,15 @@ model AnalyticsEvent {
   profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade, map: "analytics_profile_fkey")
   link      Link?    @relation(fields: [linkId], references: [id], onDelete: Cascade, map: "analytics_link_fkey")
 
-  // NEW FIELDS FOR ADVANCED ANALYTICS (Task T006)
+  variantId     String?
   country       String?  // from IP geolocation
   city          String?  // from IP geolocation
   deviceType    String?  // 'mobile', 'tablet', 'desktop'
   browser       String?  // browser name
   os            String?  // operating system
   timezoneOffset Int?    // for timezone tracking
+  
+  linkVariant   LinkVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 }
 
 // NEW MODEL FOR PRO FEATURES (Task T005)
@@ -235,6 +237,7 @@ model LinkVariant {
   link                  Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
   abTest                ABTest?  @relation("ABTestVariants", fields: [abTestId], references: [id], onDelete: SetNull)
   wonABTests            ABTest?  @relation("WinnerVariant") // Reverse relation for ABTest.winnerVariant
+  analyticsEvents       AnalyticsEvent[]
 }
 
 // ABTest: A/B test configuration with traffic split ratios and statistical data

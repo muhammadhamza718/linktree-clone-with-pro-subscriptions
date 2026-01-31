@@ -21,7 +21,7 @@ export class TrafficSplitter {
 
       // 2. Select variant based on weighted random selection
       const totalWeight = variants.reduce(
-        (sum, v) => sum + v.trafficSplitPercent,
+        (sum: number, v: any) => sum + v.trafficSplitPercent,
         0,
       );
 
