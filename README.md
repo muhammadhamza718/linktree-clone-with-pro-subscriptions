@@ -1,6 +1,6 @@
 # Linktree-Pro-bio-Profile-app
 
-A Linktree clone with pro subscription features built with Next.js 16.1.4, React 19.2.3, and Tailwind CSS.
+A Linktree clone with pro subscription features built with Next.js 16.1.4, React 19.2.3, and Tailwind CSS
 
 ## Features
 
