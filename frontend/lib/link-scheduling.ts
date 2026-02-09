@@ -3,124 +3,149 @@
  * Handles timezone-aware link visibility based on scheduled start/end dates
  */
 
-import { Link } from '../types';
+import { Link } from "../types";
 
-// Check if a link is currently visible based on its schedule and timezone
-export function isLinkVisible(link: Link, currentTime: Date = new Date()): boolean {
-  // If the link is explicitly set to not be visible, return false regardless of schedule
+/**
+ * Check if a link is currently visible based on its schedule and timezone
+ * @param link The link object to check
+ * @param currentTime The current time (default: now)
+ * @returns boolean indicating if the link should be visible
+ */
+export function isLinkVisible(
+  link: Link,
+  currentTime: Date = new Date(),
+): boolean {
+  // If the link is explicitly set to not be visible via main toggle, return false
   if (!link.isVisible) {
     return false;
   }
 
-  // If no schedule is set, the link is visible if the general isVisible flag is true
+  // If no schedule is set, the link is visible (controlled only by isVisible flag)
   if (!link.startDate && !link.endDate) {
     return true;
   }
 
-  // Convert current time to the link's timezone if specified
-  let adjustedCurrentTime = currentTime;
-  if (link.timezone) {
-    try {
-      // In a real implementation, we would convert the current time to the specified timezone
-      // For now, we'll just use the provided timezone offset in minutes
-      // This is a simplified approach - in reality, you'd use a library like date-fns-tz
-      const timezoneOffset = getTimezoneOffset(link.timezone);
-      if (timezoneOffset !== null) {
-        // Adjust the current time based on the timezone offset
-        adjustedCurrentTime = new Date(currentTime.getTime() + (timezoneOffset * 60000));
-      }
-    } catch (error) {
-      console.warn('Could not process timezone, using default time:', error);
-      // Continue with original time if timezone processing fails
-    }
-  }
+  // Get current time in the link's timezone or UTC if not specified
+  const linkTimezone = link.timezone || "UTC";
+
+  // Create Date objects relative to the link's timezone
+  // We compare times by converting everything to the target timezone
+  const zonedCurrentTime = getZonedDate(currentTime, linkTimezone);
 
   // Check start date constraint
   if (link.startDate) {
     const startDate = new Date(link.startDate);
-    if (adjustedCurrentTime < startDate) {
-      // Link hasn't started yet
-      return false;
+    // Convert start date to the same timezone reference for fair comparison
+    const zonedStartDate = getZonedDate(startDate, linkTimezone);
+
+    if (zonedCurrentTime < zonedStartDate) {
+      return false; // Scheduled for future
     }
   }
 
   // Check end date constraint
   if (link.endDate) {
     const endDate = new Date(link.endDate);
-    if (adjustedCurrentTime > endDate) {
-      // Link has expired
-      return false;
+    const zonedEndDate = getZonedDate(endDate, linkTimezone);
+
+    if (zonedCurrentTime > zonedEndDate) {
+      return false; // Expired
     }
   }
 
-  // If we got here, the link is within its scheduled timeframe
   return true;
 }
 
-// Get the timezone offset in minutes for a given timezone string
-function getTimezoneOffset(timezone: string): number | null {
+/**
+ * Returns a Date object representing the time in a specific timezone
+ * This uses the Intl API which is standard in modern environments
+ */
+function getZonedDate(date: Date, timezone: string): Date {
   try {
-    // Create a date in UTC
-    const date = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      timeZone: timezone,
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+      hour12: false,
+    };
 
-    // Get the time in the specified timezone
-    const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-    const newTime = new Date(utc + (getTimezoneOffsetByName(timezone) || 0));
+    const formatter = new Intl.DateTimeFormat("en-US", options);
+    const parts = formatter.formatToParts(date);
 
-    // Calculate the offset
-    return (date.getTimezoneOffset() * -1) - (newTime.getTimezoneOffset() * -1);
+    const partValues: Record<string, string> = {};
+    parts.forEach((p) => {
+      partValues[p.type] = p.value;
+    });
+
+    // Construct a new date object from the parts
+    // Note: We use the values from the timezone but create a date object
+    // that uses local time with these values for comparison purposes.
+    // This allows us to compare "10:00 AM NY time" vs "11:00 AM NY time"
+    // by comparing the underlying relative timestamps.
+    return new Date(
+      parseInt(partValues.year),
+      parseInt(partValues.month) - 1,
+      parseInt(partValues.day),
+      parseInt(partValues.hour === "24" ? "0" : partValues.hour),
+      parseInt(partValues.minute),
+      parseInt(partValues.second),
+    );
   } catch (error) {
-    return null;
+    console.warn(
+      `Invalid timezone '${timezone}', falling back to UTC/Local comparison`,
+      error,
+    );
+    return date;
   }
 }
 
-// Helper function to get offset for common timezones
-function getTimezoneOffsetByName(timezone: string): number | null {
-  // This is a simplified approach - in reality, you'd use Intl.DateTimeFormat
-  const offsets: { [key: string]: number } = {
-    'America/New_York': -300, // EST
-    'America/Chicago': -360,  // CST
-    'America/Denver': -420,   // MST
-    'America/Los_Angeles': -480, // PST
-    'Europe/London': 0,       // GMT
-    'Europe/Paris': 60,       // CET
-    'Asia/Tokyo': 540,        // JST
-    'Asia/Shanghai': 480,     // CST
-    'Australia/Sydney': 600,  // AEST
-    'Pacific/Auckland': 720,  // NZST
-  };
+/**
+ * Get upcoming scheduled links for a profile
+ */
+export function getUpcomingLinks(
+  links: Link[],
+  currentTime: Date = new Date(),
+): Link[] {
+  return links.filter((link) => {
+    if (!link.startDate) return false;
 
-  return offsets[timezone] || null;
-}
+    const timezone = link.timezone || "UTC";
+    const zonedCurrent = getZonedDate(currentTime, timezone);
+    const zonedStart = getZonedDate(new Date(link.startDate), timezone);
 
-// Get upcoming scheduled links for a profile
-export function getUpcomingLinks(links: Link[], currentTime: Date = new Date()): Link[] {
-  return links.filter(link => {
-    if (link.startDate) {
-      const startDate = new Date(link.startDate);
-      // Link starts in the future
-      return startDate > currentTime;
-    }
-    return false;
+    return zonedStart > zonedCurrent;
   });
 }
 
-// Get expired links that should no longer be visible
-export function getExpiredLinks(links: Link[], currentTime: Date = new Date()): Link[] {
-  return links.filter(link => {
-    if (link.endDate) {
-      const endDate = new Date(link.endDate);
-      // Link ended in the past
-      return endDate < currentTime;
-    }
-    return false;
+/**
+ * Get expired links that should no longer be visible
+ */
+export function getExpiredLinks(
+  links: Link[],
+  currentTime: Date = new Date(),
+): Link[] {
+  return links.filter((link) => {
+    if (!link.endDate) return false;
+
+    const timezone = link.timezone || "UTC";
+    const zonedCurrent = getZonedDate(currentTime, timezone);
+    const zonedEnd = getZonedDate(new Date(link.endDate), timezone);
+
+    return zonedEnd < zonedCurrent;
   });
 }
 
-// Get currently active scheduled links
-export function getActiveScheduledLinks(links: Link[], currentTime: Date = new Date()): Link[] {
-  return links.filter(link => {
-    // Check if the link is within its scheduled timeframe
-    return isLinkVisible(link, currentTime);
-  });
+/**
+ * Get currently active scheduled links
+ * Returns links that are currently visible based on schedule
+ */
+export function getActiveScheduledLinks(
+  links: Link[],
+  currentTime: Date = new Date(),
+): Link[] {
+  return links.filter((link) => isLinkVisible(link, currentTime));
 }
