@@ -224,15 +224,15 @@ export async function getAnalyticsDashboard(
 
     // Process referrers
     const referrerData = referrers
-      .filter((item) => item.referrer)
-      .map((item) => ({
+      .filter((item: any) => item.referrer)
+      .map((item: any) => ({
         source: item.referrer as string,
         count: item._count.referrer || 0,
       }));
 
     // Process heatmaps
     const linkHeatmaps = await Promise.all(
-      heatmaps.map(async (heatmap) => {
+      heatmaps.map(async (heatmap: any) => {
         if (!heatmap.linkId) return null;
 
         const link = await prisma.link.findUnique({
