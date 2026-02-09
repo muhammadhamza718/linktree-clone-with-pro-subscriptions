@@ -98,6 +98,7 @@ async function saveBatchToDatabase(
       data: batch.map((event) => ({
         profileId: event.profileId,
         linkId: event.linkId,
+        variantId: event.variantId,
         eventType: event.eventType,
         ipAddress: event.ipAddress,
         userAgent: event.userAgent,

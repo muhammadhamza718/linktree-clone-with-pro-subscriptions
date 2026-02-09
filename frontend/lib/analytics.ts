@@ -10,17 +10,29 @@ import { WebhookEventEmitter } from "../services/webhooks/event-emitter";
 export interface AnalyticsTrackData {
   profileId?: string;
   linkId?: string;
-  variantId?: string;
+  variantId?: string; // For A/B testing
   eventType: "profile_view" | "link_click";
   ipAddress?: string;
   userAgent?: string;
   referrer?: string;
   country?: string;
   city?: string;
-  deviceType?: "mobile" | "tablet" | "desktop";
+  deviceType?: "mobile" | "tablet" | "desktop"; // Enforce specific types for device
   browser?: string;
   os?: string;
   timezoneOffset?: number;
+}
+
+// Interface for dashboard data return type
+export interface AnalyticsDashboardData {
+  totalViews: number;
+  totalClicks: number;
+  demographics: {
+    countries: { country: string; count: number }[];
+    devices: { mobile: number; tablet: number; desktop: number };
+  };
+  referrers: { source: string; count: number }[];
+  heatmaps: { linkId: string; title: string; clicks: number }[];
 }
 
 // Track an analytics event (will be queued for async processing)
@@ -48,37 +60,18 @@ export async function trackAnalyticsEvent(
 
     // If it's a link click with a variant, record it in the A/B test service
     if (data.eventType === "link_click" && data.variantId) {
-      const { TrafficSplitter } =
-        await import("../services/ab-testing/traffic-splitter");
-      TrafficSplitter.recordClick(data.variantId).catch((err) =>
-        console.error("A/B click tracking failed:", err),
-      );
+      try {
+        const { TrafficSplitter } =
+          await import("../services/ab-testing/traffic-splitter");
+        await TrafficSplitter.recordClick(data.variantId);
+      } catch (err) {
+        console.error("A/B click tracking failed:", err);
+      }
     }
 
     // Trigger Webhook Event if profileId is present
     if (data.profileId) {
-      // We need the userId to trigger webhooks
-      const profile = await prisma.profile.findUnique({
-        where: { id: data.profileId },
-        select: { userId: true },
-      });
-
-      if (profile) {
-        // Emit webhook event
-        WebhookEventEmitter.emit(
-          profile.userId,
-          data.eventType === "profile_view" ? "profile_view" : "link_click",
-          { id: event.id, ...data },
-          {
-            ipHash: data.ipAddress,
-            device: data.deviceType,
-            country: data.country,
-            city: data.city,
-            browser: data.browser,
-            os: data.os,
-          },
-        ).catch((err) => console.error("Webhook emission failed:", err));
-      }
+      await triggerWebhook(data, event.id);
     }
 
     return event.id;
@@ -88,49 +81,72 @@ export async function trackAnalyticsEvent(
   }
 }
 
+// Helper to trigger webhooks separately
+async function triggerWebhook(data: AnalyticsTrackData, eventId: string) {
+  try {
+    // We need the userId to trigger webhooks
+    const profile = await prisma.profile.findUnique({
+      where: { id: data.profileId },
+      select: { userId: true },
+    });
+
+    if (profile) {
+      // Emit webhook event
+      await WebhookEventEmitter.emit(
+        profile.userId,
+        data.eventType === "profile_view" ? "profile_view" : "link_click",
+        { id: eventId, ...data },
+        {
+          ipHash: data.ipAddress,
+          device: data.deviceType || "unknown",
+          country: data.country || "unknown",
+          city: data.city || "unknown",
+          browser: data.browser || "unknown",
+          os: data.os || "unknown",
+        },
+      );
+    }
+  } catch (err) {
+    console.error("Webhook emission failed:", err);
+  }
+}
+
 // Get analytics dashboard data
 export async function getAnalyticsDashboard(
   profileId: string,
   startDate: Date,
   endDate: Date,
-): Promise<any> {
+): Promise<AnalyticsDashboardData> {
   try {
+    // Define the date filter once
+    const dateFilter = {
+      gte: startDate,
+      lte: endDate,
+    };
+
+    const countQuery = (eventType: string) => ({
+      where: {
+        profileId,
+        eventType,
+        timestamp: dateFilter,
+      },
+    });
+
     // Get profile views and link clicks in date range
     const [totalViews, totalClicks, demographics, referrers, heatmaps] =
       await Promise.all([
         // Total profile views
-        prisma.analyticsEvent.count({
-          where: {
-            profileId,
-            eventType: "profile_view",
-            timestamp: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-        }),
+        prisma.analyticsEvent.count(countQuery("profile_view")),
 
         // Total link clicks
-        prisma.analyticsEvent.count({
-          where: {
-            profileId,
-            eventType: "link_click",
-            timestamp: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-        }),
+        prisma.analyticsEvent.count(countQuery("link_click")),
 
         // Geographic and device demographics
         prisma.analyticsEvent.groupBy({
           by: ["country", "deviceType"],
           where: {
             profileId,
-            timestamp: {
-              gte: startDate,
-              lte: endDate,
-            },
+            timestamp: dateFilter,
           },
           _count: {
             country: true,
@@ -143,10 +159,7 @@ export async function getAnalyticsDashboard(
           where: {
             profileId,
             eventType: "profile_view",
-            timestamp: {
-              gte: startDate,
-              lte: endDate,
-            },
+            timestamp: dateFilter,
           },
           _count: {
             referrer: true,
@@ -159,10 +172,7 @@ export async function getAnalyticsDashboard(
           where: {
             profileId,
             eventType: "link_click",
-            timestamp: {
-              gte: startDate,
-              lte: endDate,
-            },
+            timestamp: dateFilter,
           },
           _count: {
             linkId: true,
@@ -171,44 +181,58 @@ export async function getAnalyticsDashboard(
       ]);
 
     // Process demographic data
-    const countries = demographics.reduce((acc: any[], item: any) => {
-      const existingCountry = acc.find(
-        (country: any) => country.country === item.country,
-      );
-      if (existingCountry) {
-        existingCountry.count += item._count.country;
-      } else {
-        acc.push({
-          country: item.country,
-          count: item._count.country,
-        });
+    interface CountryData {
+      country: string;
+      count: number;
+    }
+    const countriesMap = new Map<string, number>();
+
+    demographics.forEach((item) => {
+      if (item.country) {
+        const currentCount = countriesMap.get(item.country) || 0;
+        countriesMap.set(
+          item.country,
+          currentCount + (item._count.country || 0),
+        );
       }
-      return acc;
-    }, []);
+    });
+
+    const countries: CountryData[] = Array.from(countriesMap.entries()).map(
+      ([country, count]) => ({ country, count }),
+    );
 
     // Process device data
     const deviceCounts = demographics.reduce(
-      (acc: any, item: any) => {
-        if (item.deviceType) {
+      (acc, item) => {
+        if (
+          item.deviceType &&
+          (item.deviceType === "mobile" ||
+            item.deviceType === "tablet" ||
+            item.deviceType === "desktop")
+        ) {
           acc[item.deviceType] =
-            (acc[item.deviceType] || 0) + item._count.country;
+            (acc[item.deviceType] || 0) + (item._count.country || 0);
         }
         return acc;
       },
-      { mobile: 0, tablet: 0, desktop: 0 },
+      {
+        mobile: 0,
+        tablet: 0,
+        desktop: 0,
+      } as AnalyticsDashboardData["demographics"]["devices"],
     );
 
     // Process referrers
     const referrerData = referrers
-      .filter((item: any) => item.referrer)
-      .map((item: any) => ({
-        source: item.referrer,
-        count: item._count.referrer,
+      .filter((item) => item.referrer)
+      .map((item) => ({
+        source: item.referrer as string,
+        count: item._count.referrer || 0,
       }));
 
     // Process heatmaps
     const linkHeatmaps = await Promise.all(
-      heatmaps.map(async (heatmap: any) => {
+      heatmaps.map(async (heatmap) => {
         if (!heatmap.linkId) return null;
 
         const link = await prisma.link.findUnique({
@@ -221,7 +245,7 @@ export async function getAnalyticsDashboard(
         return {
           linkId: heatmap.linkId,
           title: link.title,
-          clicks: heatmap._count.linkId,
+          clicks: heatmap._count.linkId || 0,
         };
       }),
     );
@@ -230,15 +254,16 @@ export async function getAnalyticsDashboard(
       totalViews,
       totalClicks,
       demographics: {
-        countries: countries
-          .sort((a: any, b: any) => b.count - a.count)
-          .slice(0, 10), // Top 10 countries
+        countries: countries.sort((a, b) => b.count - a.count).slice(0, 10), // Top 10 countries
         devices: deviceCounts,
       },
       referrers: referrerData,
       heatmaps: linkHeatmaps
-        .filter(Boolean)
-        .sort((a: any, b: any) => b.clicks! - a.clicks!)
+        .filter(
+          (item): item is { linkId: string; title: string; clicks: number } =>
+            Boolean(item),
+        )
+        .sort((a, b) => b.clicks - a.clicks)
         .slice(0, 10), // Top 10 links
     };
   } catch (error) {
@@ -247,115 +272,14 @@ export async function getAnalyticsDashboard(
   }
 }
 
-// Export analytics data as CSV
-export async function exportAnalyticsData(
-  profileId: string,
-  startDate: Date,
-  endDate: Date,
-  dataType: "clicks" | "views" | "referrers" | "demographics",
-): Promise<string> {
-  try {
-    let data: any[] = [];
-
-    switch (dataType) {
-      case "clicks":
-        data = await prisma.analyticsEvent.findMany({
-          where: {
-            profileId,
-            eventType: "link_click",
-            timestamp: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-          include: {
-            link: true,
-          },
-        });
-        break;
-      case "views":
-        data = await prisma.analyticsEvent.findMany({
-          where: {
-            profileId,
-            eventType: "profile_view",
-            timestamp: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-        });
-        break;
-      case "referrers":
-        data = await prisma.analyticsEvent.groupBy({
-          by: ["referrer"],
-          where: {
-            profileId,
-            eventType: "profile_view",
-            timestamp: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-          _count: {
-            referrer: true,
-          },
-        });
-        break;
-      case "demographics":
-        data = await prisma.analyticsEvent.groupBy({
-          by: ["country", "city", "deviceType", "browser", "os"],
-          where: {
-            profileId,
-            timestamp: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-          _count: {
-            country: true,
-          },
-        });
-        break;
-      default:
-        throw new Error("Invalid data type for export");
-    }
-
-    // Convert to CSV format
-    if (data.length === 0) {
-      return "No data available";
-    }
-
-    // Get headers from the first data item
-    const headers = Object.keys(data[0]).filter((key) => key !== "_count");
-    let csvContent = headers.join(",") + "\n";
-
-    // Add data rows
-    data.forEach((item) => {
-      const row = headers
-        .map((header) => {
-          let value = item[header];
-          if (typeof value === "object" && value !== null) {
-            value = JSON.stringify(value);
-          } else if (value === null || value === undefined) {
-            value = "";
-          }
-          return `"${String(value).replace(/"/g, '""')}"`;
-        })
-        .join(",");
-      csvContent += row + "\n";
-    });
-
-    return csvContent;
-  } catch (error) {
-    console.error("Error exporting analytics data:", error);
-    throw new Error("Failed to export analytics data");
-  }
-}
-
 // Process analytics event queue (for async processing)
-export async function processAnalyticsQueue() {
+export async function processAnalyticsQueue(): Promise<boolean> {
   // In a real implementation, this would process events from a queue system like Redis
-  // For now, we'll just return
-  console.log("Processing analytics queue...");
+  // For now, call the in-memory queue processor from analytics-queue if needed,
+  // or simply return true as the queue handles itself.
+  // We can import the flush function here if we wanted to trigger processing manually
+  console.log(
+    "Processing analytics queue... (handled by analytics-queue service)",
+  );
   return true;
 }
