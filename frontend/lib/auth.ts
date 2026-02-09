@@ -32,4 +32,4 @@ export const useSession = authClient.useSession;
 // Direct session access (non-hook)
 export const getSession = authClient.getSession;
 
-export type { Session } from "better-auth/react";
+// Session type is inferred from authClient.useSession
