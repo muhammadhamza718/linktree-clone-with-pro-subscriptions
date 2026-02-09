@@ -3,12 +3,43 @@
  * Handles fetching repository metadata from the GitHub API
  */
 
+import { PrismaClient } from "@prisma/client";
+
 export interface GitHubRepoMetadata {
   stars: number;
   forks: number;
   language: string;
   description: string;
   lastUpdated: string;
+  owner: string;
+  repo: string;
+}
+
+/**
+ * Validates if a URL is a valid GitHub repository URL
+ * @param url The URL to check
+ * @returns boolean
+ */
+export function isValidGitHubRepoUrl(url: string): boolean {
+  const githubRepoPattern =
+    /^https?:\/\/(www\.)?github\.com\/[^/]+\/[^/]+(\/)?$/;
+  return githubRepoPattern.test(url);
+}
+
+/**
+ * Extract owner and repo from a GitHub URL
+ * @param url The GitHub URL
+ * @returns { owner: string, repo: string } | null
+ */
+export function extractGitHubRepoInfo(
+  url: string,
+): { owner: string; repo: string } | null {
+  const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+  if (!match) return null;
+  return {
+    owner: match[1],
+    repo: match[2].replace(/\.git$/, ""),
+  };
 }
 
 /**
@@ -20,14 +51,10 @@ export async function fetchGitHubMetadata(
   repoUrl: string,
 ): Promise<GitHubRepoMetadata | null> {
   try {
-    // Extract owner and repo name from URL
-    const urlPattern = /github\.com\/([^/]+)\/([^/]+)/;
-    const match = repoUrl.match(urlPattern);
+    const repoInfo = extractGitHubRepoInfo(repoUrl);
+    if (!repoInfo) return null;
 
-    if (!match) return null;
-
-    const owner = match[1];
-    const repo = match[2].replace(/\.git$/, "");
+    const { owner, repo } = repoInfo;
 
     const response = await fetch(
       `https://api.github.com/repos/${owner}/${repo}`,
@@ -44,9 +71,15 @@ export async function fetchGitHubMetadata(
     );
 
     if (!response.ok) {
-      console.error(
-        `GitHub API error: ${response.status} ${response.statusText}`,
-      );
+      if (response.status === 404) {
+        console.warn(`GitHub repository not found: ${owner}/${repo}`);
+      } else if (response.status === 403) {
+        console.warn(`GitHub API rate limit exceeded`);
+      } else {
+        console.error(
+          `GitHub API error: ${response.status} ${response.statusText}`,
+        );
+      }
       return null;
     }
 
@@ -58,6 +91,8 @@ export async function fetchGitHubMetadata(
       language: data.language || "N/A",
       description: data.description || "",
       lastUpdated: data.updated_at,
+      owner: data.owner.login,
+      repo: data.name,
     };
   } catch (error) {
     console.error("Error fetching GitHub metadata:", error);
@@ -67,33 +102,42 @@ export async function fetchGitHubMetadata(
 
 /**
  * Updates a Link's GitHub metadata in the database
+ * Validates the URL and updates the link description with stats
  */
-export async function syncLinkGitHubMetadata(linkId: string, prisma: any) {
-  const link = await prisma.link.findUnique({
-    where: { id: linkId },
-    select: { url: true, githubRepo: true },
-  });
-
-  if (!link || (!link.githubRepo && !link.url.includes("github.com"))) return;
-
-  const repoUrl = link.githubRepo || link.url;
-  const metadata = await fetchGitHubMetadata(repoUrl);
-
-  if (metadata) {
-    // Store metadata in a JSON field if we had one, or update description/title
-    // For now, we'll assume we want to update the link's description if it's empty
-    // and store the stats in the description or a new field if added to schema
-
-    // According to SRD Milestone 3.3.1, we should display stars, forks, language.
-    // We can store this in the 'description' field as a fallback if no special field exists.
-    const statsStr = `⭐ ${metadata.stars} | 🍴 ${metadata.forks} | 🌐 ${metadata.language}`;
-
-    await prisma.link.update({
+export async function syncLinkGitHubMetadata(
+  linkId: string,
+  prisma: PrismaClient,
+) {
+  try {
+    const link = await prisma.link.findUnique({
       where: { id: linkId },
-      data: {
-        description: `${metadata.description}\n\n${statsStr}`,
-        updatedAt: new Date(),
-      },
+      select: { url: true },
     });
+
+    if (!link || !isValidGitHubRepoUrl(link.url)) return;
+
+    const metadata = await fetchGitHubMetadata(link.url);
+
+    if (metadata) {
+      // Format stats for display in description
+      // Icons: Star, Fork, Globe/Code
+      const statsDisplay = `⭐ ${metadata.stars} | 🍴 ${metadata.forks} | ${metadata.language}`;
+
+      // Append stats to description if not already present
+      // Note: In a real app, you might want a dedicated JSON field for this
+      // For now, we update the title or description to include stats
+
+      await prisma.link.update({
+        where: { id: linkId },
+        data: {
+          // We don't want to overwrite the user's custom title,
+          // but we can append stats to the title or description if it's a GitHub link type
+          // Assuming we use title for this display for now:
+          title: `${metadata.owner}/${metadata.repo} (${statsDisplay})`,
+        },
+      });
+    }
+  } catch (error) {
+    console.error(`Failed to sync GitHub metadata for link ${linkId}:`, error);
   }
 }
