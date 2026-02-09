@@ -1,39 +1,44 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { validateProfile, isValidImageUrl } from '../../lib/validations';
+import { useState } from "react";
+import { validateProfile, isValidImageUrl } from "../../lib/validations";
+import { Profile, ProfileUpdateInput } from "../../types";
 
 interface ProfileEditorProps {
-  initialProfile?: {
-    username: string;
-    displayName: string;
-    bio?: string;
-    avatar?: string;
-    title?: string;
-    avatarLayout?: 'classic' | 'hero';
-  };
-  onSave: (profileData: any) => void;
+  initialProfile?: Partial<Profile>;
+  onSave: (profileData: ProfileUpdateInput) => Promise<void> | void;
   onCancel: () => void;
 }
 
-export default function ProfileEditor({ initialProfile, onSave, onCancel }: ProfileEditorProps) {
-  const [username, setUsername] = useState(initialProfile?.username || '');
-  const [displayName, setDisplayName] = useState(initialProfile?.displayName || '');
-  const [bio, setBio] = useState(initialProfile?.bio || '');
-  const [avatar, setAvatar] = useState(initialProfile?.avatar || '');
-  const [title, setTitle] = useState(initialProfile?.title || '');
-  const [avatarLayout, setAvatarLayout] = useState<'classic' | 'hero'>(initialProfile?.avatarLayout || 'classic');
+export default function ProfileEditor({
+  initialProfile,
+  onSave,
+  onCancel,
+}: ProfileEditorProps) {
+  const [username, setUsername] = useState(initialProfile?.username || "");
+  const [displayName, setDisplayName] = useState(
+    initialProfile?.displayName || "",
+  );
+  const [bio, setBio] = useState(initialProfile?.bio || "");
+  const [avatar, setAvatar] = useState(initialProfile?.avatar || "");
+  const [title, setTitle] = useState(initialProfile?.title || "");
+  const [avatarLayout, setAvatarLayout] = useState<"classic" | "hero">(
+    initialProfile?.avatarLayout || "classic",
+  );
   const [errors, setErrors] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState(initialProfile?.avatar || '');
+  const [imagePreview, setImagePreview] = useState(
+    initialProfile?.avatar || "",
+  );
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setAvatar(reader.result as string); // Store base64 string
+        const result = reader.result as string;
+        setImagePreview(result);
+        setAvatar(result); // Store base64 string
       };
       reader.readAsDataURL(file);
     }
@@ -45,7 +50,7 @@ export default function ProfileEditor({ initialProfile, onSave, onCancel }: Prof
     setErrors([]);
 
     // Validate profile data
-    const profileData = {
+    const profileData: ProfileUpdateInput = {
       username,
       displayName,
       bio,
@@ -65,7 +70,7 @@ export default function ProfileEditor({ initialProfile, onSave, onCancel }: Prof
     // If avatar is a file input, we'll need to process it separately
     // For now, we'll validate that it's a valid image URL or base64
     if (avatar && !isValidImageUrl(avatar)) {
-      setErrors(['Avatar must be a valid image URL or uploaded image']);
+      setErrors(["Avatar must be a valid image URL or uploaded image"]);
       setIsLoading(false);
       return;
     }
@@ -73,7 +78,7 @@ export default function ProfileEditor({ initialProfile, onSave, onCancel }: Prof
     try {
       await onSave(profileData);
     } catch (error) {
-      setErrors(['Failed to save profile']);
+      setErrors(["Failed to save profile"]);
     } finally {
       setIsLoading(false);
     }
@@ -100,7 +105,10 @@ export default function ProfileEditor({ initialProfile, onSave, onCancel }: Prof
       <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
         {/* Username */}
         <div className="sm:col-span-3">
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="username"
+            className="block text-sm font-medium text-gray-700"
+          >
             Username *
           </label>
           <div className="mt-1 flex rounded-md shadow-sm">
@@ -124,7 +132,10 @@ export default function ProfileEditor({ initialProfile, onSave, onCancel }: Prof
 
         {/* Display Name */}
         <div className="sm:col-span-3">
-          <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="displayName"
+            className="block text-sm font-medium text-gray-700"
+          >
             Display Name *
           </label>
           <input
@@ -140,7 +151,10 @@ export default function ProfileEditor({ initialProfile, onSave, onCancel }: Prof
 
         {/* Title */}
         <div className="sm:col-span-4">
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="title"
+            className="block text-sm font-medium text-gray-700"
+          >
             Title
           </label>
           <input
@@ -155,13 +169,18 @@ export default function ProfileEditor({ initialProfile, onSave, onCancel }: Prof
 
         {/* Avatar Layout */}
         <div className="sm:col-span-2">
-          <label htmlFor="avatarLayout" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="avatarLayout"
+            className="block text-sm font-medium text-gray-700"
+          >
             Avatar Layout
           </label>
           <select
             id="avatarLayout"
             value={avatarLayout}
-            onChange={(e) => setAvatarLayout(e.target.value as 'classic' | 'hero')}
+            onChange={(e) =>
+              setAvatarLayout(e.target.value as "classic" | "hero")
+            }
             className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           >
             <option value="classic">Classic (Centered)</option>
@@ -171,7 +190,10 @@ export default function ProfileEditor({ initialProfile, onSave, onCancel }: Prof
 
         {/* Bio */}
         <div className="sm:col-span-6">
-          <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="bio"
+            className="block text-sm font-medium text-gray-700"
+          >
             Bio
           </label>
           <textarea
@@ -190,7 +212,9 @@ export default function ProfileEditor({ initialProfile, onSave, onCancel }: Prof
 
         {/* Avatar Upload */}
         <div className="sm:col-span-6">
-          <label className="block text-sm font-medium text-gray-700">Avatar</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Avatar
+          </label>
 
           {/* Preview image if available */}
           {imagePreview && (
@@ -246,7 +270,7 @@ export default function ProfileEditor({ initialProfile, onSave, onCancel }: Prof
           disabled={isLoading}
           className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
-          {isLoading ? 'Saving...' : 'Save Profile'}
+          {isLoading ? "Saving..." : "Save Profile"}
         </button>
       </div>
     </form>
