@@ -1,6 +1,12 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import {
   BarChart,
   Bar,
@@ -10,8 +16,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Cell
-} from 'recharts';
+  Cell,
+} from "recharts";
 
 interface GeographicChartProps {
   data: Array<{
@@ -22,11 +28,13 @@ interface GeographicChartProps {
   description?: string;
 }
 
-export default function GeographicChart({ data, title = 'Visitor Locations', description = 'Top countries visiting your profile' }: GeographicChartProps) {
+export default function GeographicChart({
+  data,
+  title = "Visitor Locations",
+  description = "Top countries visiting your profile",
+}: GeographicChartProps) {
   // Sort data by count in descending order and take top 10
-  const sortedData = [...data]
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+  const sortedData = [...data].sort((a, b) => b.count - a.count).slice(0, 10);
 
   return (
     <Card>
@@ -50,7 +58,7 @@ export default function GeographicChart({ data, title = 'Visitor Locations', des
             />
             <YAxis />
             <Tooltip
-              formatter={(value) => [`${value} visitors`, 'Count']}
+              formatter={(value) => [`${value} visitors`, "Count"]}
               labelFormatter={(label) => `Country: ${label}`}
             />
             <Legend />
