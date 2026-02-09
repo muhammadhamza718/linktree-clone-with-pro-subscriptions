@@ -203,10 +203,7 @@ export async function getAnalyticsDashboard(
 
     // Process device data
     const deviceCounts = demographics.reduce(
-      (
-        acc: AnalyticsDashboardData["demographics"]["devices"],
-        item: any,
-      ) => {
+      (acc: AnalyticsDashboardData["demographics"]["devices"], item: any) => {
         if (
           item.deviceType &&
           (item.deviceType === "mobile" ||
@@ -221,9 +218,6 @@ export async function getAnalyticsDashboard(
       {
         mobile: 0,
         tablet: 0,
-        desktop: 0,
-      } as AnalyticsDashboardData["demographics"]["devices"],
-    );
         desktop: 0,
       } as AnalyticsDashboardData["demographics"]["devices"],
     );
