@@ -1,24 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '../../lib/utils';
-
-import { Button } from '../ui/button';
-import { Calendar } from '../ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '../ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
+import { useState, useEffect } from "react";
 
 interface LinkSchedulePickerProps {
   startDate: Date | undefined;
@@ -44,101 +26,99 @@ export default function LinkSchedulePicker({
     // In a real implementation, we would fetch timezones from the Intl API or a service
     // For now, we'll use a predefined list of common timezones
     const commonTimezones = [
-      'America/New_York',
-      'America/Chicago',
-      'America/Denver',
-      'America/Los_Angeles',
-      'Europe/London',
-      'Europe/Paris',
-      'Europe/Berlin',
-      'Asia/Tokyo',
-      'Asia/Shanghai',
-      'Asia/Kolkata',
-      'Australia/Sydney',
-      'Pacific/Auckland',
+      "America/New_York",
+      "America/Chicago",
+      "America/Denver",
+      "America/Los_Angeles",
+      "Europe/London",
+      "Europe/Paris",
+      "Europe/Berlin",
+      "Asia/Tokyo",
+      "Asia/Shanghai",
+      "Asia/Kolkata",
+      "Australia/Sydney",
+      "Pacific/Auckland",
     ];
     setAvailableTimezones(commonTimezones);
   }, []);
+
+  const formatDateForInput = (date: Date | undefined): string => {
+    if (!date) return "";
+    return date.toISOString().slice(0, 16); // YYYY-MM-DDThh:mm
+  };
+
+  const handleDateChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback: (date: Date | undefined) => void,
+  ) => {
+    if (!e.target.value) {
+      callback(undefined);
+      return;
+    }
+    callback(new Date(e.target.value));
+  };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Start Date Picker */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="schedule-start-date"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Start Date (Optional)
           </label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={'outline'}
-                className={cn(
-                  'w-full justify-start text-left font-normal',
-                  !startDate && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {startDate ? format(startDate, 'PPP') : <span>Pick a start date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={startDate}
-                onSelect={onStartDateChange}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <input
+            type="datetime-local"
+            id="schedule-start-date"
+            value={formatDateForInput(startDate)}
+            onChange={(e) => handleDateChange(e, onStartDateChange)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
         </div>
 
         {/* End Date Picker */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="schedule-end-date"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             End Date (Optional)
           </label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={'outline'}
-                className={cn(
-                  'w-full justify-start text-left font-normal',
-                  !endDate && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {endDate ? format(endDate, 'PPP') : <span>Pick an end date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={endDate}
-                onSelect={onEndDateChange}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <input
+            type="datetime-local"
+            id="schedule-end-date"
+            value={formatDateForInput(endDate)}
+            onChange={(e) => handleDateChange(e, onEndDateChange)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
         </div>
       </div>
 
       {/* Timezone Selector */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="schedule-timezone"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Timezone
         </label>
-        <Select value={timezone} onValueChange={onTimezoneChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select timezone" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableTimezones.map((tz) => (
-              <SelectItem key={tz} value={tz}>
-                {tz.replace(/_/g, ' ')}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <select
+          id="schedule-timezone"
+          value={timezone || ""}
+          onChange={(e) => onTimezoneChange(e.target.value)}
+          className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        >
+          <option value="" disabled>
+            Select timezone
+          </option>
+          {availableTimezones.map((tz) => (
+            <option key={tz} value={tz}>
+              {tz.replace(/_/g, " ")}
+            </option>
+          ))}
+        </select>
         <p className="mt-1 text-xs text-gray-500">
           Timezone affects when your scheduled links become active/inactive
         </p>
