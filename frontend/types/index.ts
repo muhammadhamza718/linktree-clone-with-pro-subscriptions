@@ -186,3 +186,23 @@ export interface AnalyticsEventCreateInput {
   userAgent?: string;
   referrer?: string;
 }
+
+export interface AnalyticsData {
+  demographics: {
+    countries: Array<{ country: string; count: number }>;
+    devices: {
+      mobile: number;
+      tablet: number;
+      desktop: number;
+    };
+  };
+  heatmaps: Array<{
+    linkId: string;
+    title: string;
+    clicks: number;
+    percentage: number;
+  }>;
+  referrers: Array<{ source: string; count: number }>;
+  totalViews: number;
+  totalClicks: number;
+}
