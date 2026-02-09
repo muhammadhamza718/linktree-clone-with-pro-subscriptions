@@ -7,6 +7,7 @@
 export interface AnalyticsEventInput {
   profileId?: string;
   linkId?: string;
+  variantId?: string;
   eventType: string;
   ipAddress?: string;
   userAgent?: string;
