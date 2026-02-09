@@ -1,125 +1,165 @@
+import { Prisma } from '@prisma/client';
 import prisma from './db';
 
 /**
  * Service for exporting analytics data as CSV
  */
 
+export type AnalyticsDataType = 'clicks' | 'views' | 'referrers' | 'demographics';
+
 export interface AnalyticsExportOptions {
   profileId: string;
   startDate: Date;
   endDate: Date;
-  dataType: 'clicks' | 'views' | 'referrers' | 'demographics';
+  dataType: AnalyticsDataType;
 }
 
-// Export analytics data as CSV format
+/**
+ * Exports analytics data as a CSV string
+ * @param options Export configuration options
+ * @returns Promise resolving to a CSV string
+ */
 export async function exportAnalyticsData(options: AnalyticsExportOptions): Promise<string> {
   try {
-    let data: any[] = [];
+    const data = await fetchAnalyticsData(options);
 
-    switch (options.dataType) {
-      case 'clicks':
-        data = await prisma.analyticsEvent.findMany({
-          where: {
-            profileId: options.profileId,
-            eventType: 'link_click',
-            timestamp: {
-              gte: options.startDate,
-              lte: options.endDate,
-            },
-          },
-          include: {
-            link: true,
-          },
-          orderBy: { timestamp: 'desc' },
-        });
-        break;
-
-      case 'views':
-        data = await prisma.analyticsEvent.findMany({
-          where: {
-            profileId: options.profileId,
-            eventType: 'profile_view',
-            timestamp: {
-              gte: options.startDate,
-              lte: options.endDate,
-            },
-          },
-          orderBy: { timestamp: 'desc' },
-        });
-        break;
-
-      case 'referrers':
-        data = await prisma.analyticsEvent.groupBy({
-          by: ['referrer'],
-          where: {
-            profileId: options.profileId,
-            eventType: 'profile_view',
-            referrer: { not: null },
-            timestamp: {
-              gte: options.startDate,
-              lte: options.endDate,
-            },
-          },
-          _count: {
-            referrer: true,
-          },
-          orderBy: { _count: { referrer: 'desc' } },
-        });
-        break;
-
-      case 'demographics':
-        data = await prisma.analyticsEvent.findMany({
-          where: {
-            profileId: options.profileId,
-            timestamp: {
-              gte: options.startDate,
-              lte: options.endDate,
-            },
-          },
-          select: {
-            country: true,
-            city: true,
-            deviceType: true,
-            browser: true,
-            os: true,
-            timestamp: true,
-          },
-          orderBy: { timestamp: 'desc' },
-        });
-        break;
-
-      default:
-        throw new Error('Invalid data type for export');
-    }
-
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
       return 'No data available for the selected period';
     }
 
-    // Generate CSV header from the first data item's keys
-    const headers = Object.keys(data[0]).filter(key => key !== '_count');
-    let csvContent = headers.join(',') + '\n';
-
-    // Add data rows
-    data.forEach(item => {
-      const row = headers.map(header => {
-        let value = item[header];
-        if (value === null || value === undefined) {
-          value = '';
-        } else if (typeof value === 'object') {
-          value = JSON.stringify(value);
-        } else if (value instanceof Date) {
-          value = value.toISOString();
-        }
-        // Escape commas and quotes in values
-        return `"${String(value).replace(/"/g, '""')}"`;
-      }).join(',');
-      csvContent += row + '\n';
-    });
-
-    return csvContent;
+    return convertToCsv(data);
   } catch (error) {
     console.error('Error exporting analytics data:', error);
-    throw new Error('Failed to export analytics data');
+    throw new Error(`Failed to export analytics data: ${(error as Error).message}`);
   }
+}
+
+/**
+ * Fetches the raw analytics data based on the requested type
+ */
+async function fetchAnalyticsData(options: AnalyticsExportOptions): Promise<Record<string, any>[]> {
+  const { profileId, startDate, endDate, dataType } = options;
+  
+  const dateFilter = {
+    gte: startDate,
+    lte: endDate,
+  };
+
+  switch (dataType) {
+    case 'clicks':
+      return await prisma.analyticsEvent.findMany({
+        where: {
+          profileId,
+          eventType: 'link_click',
+          timestamp: dateFilter,
+        },
+        include: {
+          link: {
+            select: {
+              title: true,
+              url: true,
+            }
+          },
+        },
+        orderBy: { timestamp: 'desc' },
+      });
+
+    case 'views':
+      return await prisma.analyticsEvent.findMany({
+        where: {
+          profileId,
+          eventType: 'profile_view',
+          timestamp: dateFilter,
+        },
+        orderBy: { timestamp: 'desc' },
+      });
+
+    case 'referrers':
+      const referrers = await prisma.analyticsEvent.groupBy({
+        by: ['referrer'],
+        where: {
+          profileId,
+          eventType: 'profile_view',
+          referrer: { not: null },
+          timestamp: dateFilter,
+        },
+        _count: {
+          referrer: true,
+        },
+        orderBy: { _count: { referrer: 'desc' } },
+      });
+      
+      // Flatten the structure for CSV export
+      return referrers.map(item => ({
+        referrer: item.referrer,
+        count: item._count.referrer
+      }));
+
+    case 'demographics':
+      return await prisma.analyticsEvent.findMany({
+        where: {
+          profileId,
+          timestamp: dateFilter,
+        },
+        select: {
+          country: true,
+          city: true,
+          deviceType: true,
+          browser: true,
+          os: true,
+          timestamp: true,
+        },
+        orderBy: { timestamp: 'desc' },
+      });
+
+    default:
+      throw new Error(`Invalid data type: ${dataType}`);
+  }
+}
+
+/**
+ * Converts an array of objects to a CSV string
+ */
+function convertToCsv(data: Record<string, any>[]): string {
+  if (data.length === 0) return '';
+
+  // Generate headers from the first object's keys
+  const headers = Object.keys(data[0]);
+  const headerRow = headers.join(',');
+
+  const rows = data.map(item => {
+    return headers.map(header => {
+      const value = item[header];
+      return formatCsvValue(value);
+    }).join(',');
+  });
+
+  return [headerRow, ...rows].join('\n');
+}
+
+/**
+ * Formats a single value for CSV inclusion
+ */
+function formatCsvValue(value: any): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  
+  if (value instanceof Date) {
+    return `"${value.toISOString()}"`;
+  }
+  
+  if (typeof value === 'object') {
+    // Check if it's a nested object (like the included 'link' relation)
+    // and try to simplify it, or just JSON stringify it
+    return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+  }
+  
+  const stringValue = String(value);
+  // If value contains comma, newline or double quote, enclose in quotes and escape double quotes
+  if (/[",\n]/.test(stringValue)) {
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  }
+  
+  return stringValue;
 }
