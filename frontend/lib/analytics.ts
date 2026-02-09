@@ -210,8 +210,8 @@ export async function getAnalyticsDashboard(
             item.deviceType === "tablet" ||
             item.deviceType === "desktop")
         ) {
-          acc[item.deviceType] =
-            (acc[item.deviceType] || 0) + (item._count.country || 0);
+          const key = item.deviceType as keyof typeof acc;
+          acc[key] = (acc[key] || 0) + (item._count.country || 0);
         }
         return acc;
       },
