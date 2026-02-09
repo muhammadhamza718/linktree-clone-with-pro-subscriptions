@@ -1,28 +1,32 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
+import { Theme, ThemeUpdateInput } from "../../types";
 
 interface ThemeCustomizerProps {
-  initialTheme: any;
-  onSave: (themeData: any) => void;
+  initialTheme: Partial<Theme>;
+  onSave: (themeData: ThemeUpdateInput) => Promise<void> | void;
 }
 
-export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomizerProps) {
-  const [theme, setTheme] = useState({
-    name: initialTheme?.name || 'My Theme',
-    backgroundColor: initialTheme?.backgroundColor || '#ffffff',
-    textColor: initialTheme?.textColor || '#1f2937',
-    linkColor: initialTheme?.linkColor || '#3b82f6',
-    buttonStyle: initialTheme?.buttonStyle || 'rounded',
-    buttonColor: initialTheme?.buttonColor || 'solid',
-    fontFamily: initialTheme?.fontFamily || 'system-ui',
-    fontSize: initialTheme?.fontSize || 'medium',
+export default function ThemeCustomizer({
+  initialTheme,
+  onSave,
+}: ThemeCustomizerProps) {
+  const [theme, setTheme] = useState<ThemeUpdateInput>({
+    name: initialTheme?.name || "My Theme",
+    backgroundColor: initialTheme?.backgroundColor || "#ffffff",
+    textColor: initialTheme?.textColor || "#1f2937",
+    linkColor: initialTheme?.linkColor || "#3b82f6",
+    buttonStyle: (initialTheme?.buttonStyle as any) || "rounded",
+    buttonColor: (initialTheme?.buttonColor as any) || "solid",
+    fontFamily: initialTheme?.fontFamily || "system-ui",
+    fontSize: initialTheme?.fontSize || "medium",
     isLightMode: initialTheme?.isLightMode ?? true,
   });
   const [errors, setErrors] = useState<string[]>([]);
 
-  const handleChange = (field: string, value: any) => {
-    setTheme(prev => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof ThemeUpdateInput, value: any) => {
+    setTheme((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,7 +36,7 @@ export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomize
     try {
       await onSave(theme);
     } catch (error) {
-      setErrors(['Failed to save theme']);
+      setErrors(["Failed to save theme"]);
     }
   };
 
@@ -65,14 +69,17 @@ export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomize
         <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
           {/* Theme Name */}
           <div className="sm:col-span-3">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700"
+            >
               Theme Name
             </label>
             <input
               type="text"
               id="name"
-              value={theme.name}
-              onChange={(e) => handleChange('name', e.target.value)}
+              value={theme.name || ""}
+              onChange={(e) => handleChange("name", e.target.value)}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               placeholder="My Custom Theme"
             />
@@ -80,21 +87,28 @@ export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomize
 
           {/* Background Color */}
           <div className="sm:col-span-3">
-            <label htmlFor="backgroundColor" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="backgroundColor"
+              className="block text-sm font-medium text-gray-700"
+            >
               Background Color
             </label>
             <div className="mt-1 flex items-center">
               <input
                 type="color"
                 id="backgroundColor"
-                value={theme.backgroundColor}
-                onChange={(e) => handleChange('backgroundColor', e.target.value)}
+                value={theme.backgroundColor || "#ffffff"}
+                onChange={(e) =>
+                  handleChange("backgroundColor", e.target.value)
+                }
                 className="h-10 w-10 border-gray-300 rounded"
               />
               <input
                 type="text"
-                value={theme.backgroundColor}
-                onChange={(e) => handleChange('backgroundColor', e.target.value)}
+                value={theme.backgroundColor || ""}
+                onChange={(e) =>
+                  handleChange("backgroundColor", e.target.value)
+                }
                 className="ml-3 flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="#ffffff"
               />
@@ -103,21 +117,24 @@ export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomize
 
           {/* Text Color */}
           <div className="sm:col-span-3">
-            <label htmlFor="textColor" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="textColor"
+              className="block text-sm font-medium text-gray-700"
+            >
               Text Color
             </label>
             <div className="mt-1 flex items-center">
               <input
                 type="color"
                 id="textColor"
-                value={theme.textColor}
-                onChange={(e) => handleChange('textColor', e.target.value)}
+                value={theme.textColor || "#1f2937"}
+                onChange={(e) => handleChange("textColor", e.target.value)}
                 className="h-10 w-10 border-gray-300 rounded"
               />
               <input
                 type="text"
-                value={theme.textColor}
-                onChange={(e) => handleChange('textColor', e.target.value)}
+                value={theme.textColor || ""}
+                onChange={(e) => handleChange("textColor", e.target.value)}
                 className="ml-3 flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="#1f2937"
               />
@@ -126,21 +143,24 @@ export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomize
 
           {/* Link Color */}
           <div className="sm:col-span-3">
-            <label htmlFor="linkColor" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="linkColor"
+              className="block text-sm font-medium text-gray-700"
+            >
               Link Color
             </label>
             <div className="mt-1 flex items-center">
               <input
                 type="color"
                 id="linkColor"
-                value={theme.linkColor}
-                onChange={(e) => handleChange('linkColor', e.target.value)}
+                value={theme.linkColor || "#3b82f6"}
+                onChange={(e) => handleChange("linkColor", e.target.value)}
                 className="h-10 w-10 border-gray-300 rounded"
               />
               <input
                 type="text"
-                value={theme.linkColor}
-                onChange={(e) => handleChange('linkColor', e.target.value)}
+                value={theme.linkColor || ""}
+                onChange={(e) => handleChange("linkColor", e.target.value)}
                 className="ml-3 flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="#3b82f6"
               />
@@ -149,13 +169,16 @@ export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomize
 
           {/* Button Style */}
           <div className="sm:col-span-3">
-            <label htmlFor="buttonStyle" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="buttonStyle"
+              className="block text-sm font-medium text-gray-700"
+            >
               Button Style
             </label>
             <select
               id="buttonStyle"
-              value={theme.buttonStyle}
-              onChange={(e) => handleChange('buttonStyle', e.target.value)}
+              value={theme.buttonStyle || "rounded"}
+              onChange={(e) => handleChange("buttonStyle", e.target.value)}
               className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="rounded">Rounded</option>
@@ -166,13 +189,16 @@ export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomize
 
           {/* Button Color */}
           <div className="sm:col-span-3">
-            <label htmlFor="buttonColor" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="buttonColor"
+              className="block text-sm font-medium text-gray-700"
+            >
               Button Color Style
             </label>
             <select
               id="buttonColor"
-              value={theme.buttonColor}
-              onChange={(e) => handleChange('buttonColor', e.target.value)}
+              value={theme.buttonColor || "solid"}
+              onChange={(e) => handleChange("buttonColor", e.target.value)}
               className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="solid">Solid</option>
@@ -183,13 +209,16 @@ export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomize
 
           {/* Font Family */}
           <div className="sm:col-span-3">
-            <label htmlFor="fontFamily" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="fontFamily"
+              className="block text-sm font-medium text-gray-700"
+            >
               Font Family
             </label>
             <select
               id="fontFamily"
-              value={theme.fontFamily}
-              onChange={(e) => handleChange('fontFamily', e.target.value)}
+              value={theme.fontFamily || "system-ui"}
+              onChange={(e) => handleChange("fontFamily", e.target.value)}
               className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="system-ui">System UI</option>
@@ -205,13 +234,16 @@ export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomize
 
           {/* Font Size */}
           <div className="sm:col-span-3">
-            <label htmlFor="fontSize" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="fontSize"
+              className="block text-sm font-medium text-gray-700"
+            >
               Font Size
             </label>
             <select
               id="fontSize"
-              value={theme.fontSize}
-              onChange={(e) => handleChange('fontSize', e.target.value)}
+              value={theme.fontSize || "medium"}
+              onChange={(e) => handleChange("fontSize", e.target.value)}
               className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="small">Small</option>
@@ -227,10 +259,13 @@ export default function ThemeCustomizer({ initialTheme, onSave }: ThemeCustomize
                 id="isLightMode"
                 type="checkbox"
                 checked={theme.isLightMode}
-                onChange={(e) => handleChange('isLightMode', e.target.checked)}
+                onChange={(e) => handleChange("isLightMode", e.target.checked)}
                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
-              <label htmlFor="isLightMode" className="ml-2 block text-sm text-gray-900">
+              <label
+                htmlFor="isLightMode"
+                className="ml-2 block text-sm text-gray-900"
+              >
                 Use Light Mode (uncheck for Dark Mode)
               </label>
             </div>
