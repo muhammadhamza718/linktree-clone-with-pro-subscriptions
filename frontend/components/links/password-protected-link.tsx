@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Lock } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Lock } from "lucide-react";
 
 interface PasswordProtectedLinkProps {
   linkId: string;
@@ -19,43 +19,56 @@ export default function PasswordProtectedLink({
   onError,
 }: PasswordProtectedLinkProps) {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+
+  // Check if user already has access to this link
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem(`link_access_${linkId}`) === "true"
+    ) {
+      setIsUnlocked(true);
+      onUnlock(destinationUrl);
+    }
+  }, [linkId, destinationUrl, onUnlock]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       // Verify password with the server
       const response = await fetch(`/api/links/${linkId}/verify-password`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ password }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Incorrect password');
+        throw new Error(errorData.message || "Incorrect password");
       }
 
       const result = await response.json();
 
       if (result.valid) {
         // Store session for this link temporarily
-        localStorage.setItem(`link_access_${linkId}`, 'true');
+        localStorage.setItem(`link_access_${linkId}`, "true");
 
         // Call the unlock callback with the destination URL
         onUnlock(destinationUrl);
       } else {
-        setError('Incorrect password. Please try again.');
+        setError("Incorrect password. Please try again.");
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to verify password';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to verify password";
       setError(errorMessage);
       onError?.(errorMessage);
     } finally {
@@ -63,10 +76,8 @@ export default function PasswordProtectedLink({
     }
   };
 
-  // Check if user already has access to this link
-  if (typeof window !== 'undefined' && localStorage.getItem(`link_access_${linkId}`) === 'true') {
-    // User already unlocked this link, redirect directly
-    onUnlock(destinationUrl);
+  // Logic to prevent rendering the lock button if already unlocked or being redirected
+  if (isUnlocked) {
     return null;
   }
 
@@ -107,7 +118,10 @@ export default function PasswordProtectedLink({
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Enter password to access this link
           </label>
           <input
@@ -127,7 +141,7 @@ export default function PasswordProtectedLink({
             disabled={isLoading}
             className="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            {isLoading ? 'Verifying...' : 'Unlock Link'}
+            {isLoading ? "Verifying..." : "Unlock Link"}
           </button>
 
           <button
