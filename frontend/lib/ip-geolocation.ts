@@ -3,8 +3,6 @@
  * Provides visitor demographic data including location, device type, and browser information
  */
 
-import { UAParser } from "ua-parser-js";
-
 // Interface for geolocation data
 export interface GeolocationData {
   country?: string;
