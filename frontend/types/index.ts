@@ -23,7 +23,7 @@ export interface Profile {
   displayName: string;
   bio?: string;
   avatar?: string;
-  avatarLayout?: 'classic' | 'hero';
+  avatarLayout?: "classic" | "hero";
   title?: string;
   themeId?: string;
   isActive: boolean;
@@ -36,7 +36,7 @@ export interface ProfileCreateInput {
   displayName: string;
   bio?: string;
   avatar?: string;
-  avatarLayout?: 'classic' | 'hero';
+  avatarLayout?: "classic" | "hero";
   title?: string;
   themeId?: string;
 }
@@ -46,7 +46,7 @@ export interface ProfileUpdateInput {
   displayName?: string;
   bio?: string;
   avatar?: string;
-  avatarLayout?: 'classic' | 'hero';
+  avatarLayout?: "classic" | "hero";
   title?: string;
   themeId?: string;
 }
@@ -57,13 +57,23 @@ export interface Link {
   profileId: string;
   title: string;
   url: string;
-  linkType?: 'social' | 'website' | 'project' | 'email' | 'phone' | 'embed' | 'custom';
+  linkType?:
+    | "social"
+    | "website"
+    | "project"
+    | "email"
+    | "phone"
+    | "embed"
+    | "custom";
   thumbnail?: string;
   icon?: string;
   order: number;
   isVisible: boolean;
   isFeatured: boolean;
   githubRepo?: string;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  timezone?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -71,25 +81,45 @@ export interface Link {
 export interface LinkCreateInput {
   title: string;
   url: string;
-  linkType?: 'social' | 'website' | 'project' | 'email' | 'phone' | 'embed' | 'custom';
+  linkType?:
+    | "social"
+    | "website"
+    | "project"
+    | "email"
+    | "phone"
+    | "embed"
+    | "custom";
   thumbnail?: string;
   icon?: string;
   order: number;
   isVisible?: boolean;
   isFeatured?: boolean;
   githubRepo?: string;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  timezone?: string | null;
 }
 
 export interface LinkUpdateInput {
   title?: string;
   url?: string;
-  linkType?: 'social' | 'website' | 'project' | 'email' | 'phone' | 'embed' | 'custom';
+  linkType?:
+    | "social"
+    | "website"
+    | "project"
+    | "email"
+    | "phone"
+    | "embed"
+    | "custom";
   thumbnail?: string;
   icon?: string;
   order?: number;
   isVisible?: boolean;
   isFeatured?: boolean;
   githubRepo?: string;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  timezone?: string | null;
 }
 
 // Theme types
@@ -101,8 +131,8 @@ export interface Theme {
   backgroundColor?: string;
   textColor?: string;
   linkColor?: string;
-  buttonStyle?: 'rounded' | 'square' | 'pill';
-  buttonColor?: 'solid' | 'gradient' | 'glass';
+  buttonStyle?: "rounded" | "square" | "pill";
+  buttonColor?: "solid" | "gradient" | "glass";
   fontFamily?: string;
   fontSize?: string;
   isLightMode: boolean;
@@ -116,8 +146,8 @@ export interface ThemeCreateInput {
   backgroundColor?: string;
   textColor?: string;
   linkColor?: string;
-  buttonStyle?: 'rounded' | 'square' | 'pill';
-  buttonColor?: 'solid' | 'gradient' | 'glass';
+  buttonStyle?: "rounded" | "square" | "pill";
+  buttonColor?: "solid" | "gradient" | "glass";
   fontFamily?: string;
   fontSize?: string;
   isLightMode?: boolean;
@@ -129,8 +159,8 @@ export interface ThemeUpdateInput {
   backgroundColor?: string;
   textColor?: string;
   linkColor?: string;
-  buttonStyle?: 'rounded' | 'square' | 'pill';
-  buttonColor?: 'solid' | 'gradient' | 'glass';
+  buttonStyle?: "rounded" | "square" | "pill";
+  buttonColor?: "solid" | "gradient" | "glass";
   fontFamily?: string;
   fontSize?: string;
   isLightMode?: boolean;
@@ -141,7 +171,7 @@ export interface AnalyticsEvent {
   id: string;
   profileId?: string;
   linkId?: string;
-  eventType: 'profile_view' | 'link_click';
+  eventType: "profile_view" | "link_click";
   ipAddress?: string;
   userAgent?: string;
   referrer?: string;
@@ -151,7 +181,7 @@ export interface AnalyticsEvent {
 export interface AnalyticsEventCreateInput {
   profileId?: string;
   linkId?: string;
-  eventType: 'profile_view' | 'link_click';
+  eventType: "profile_view" | "link_click";
   ipAddress?: string;
   userAgent?: string;
   referrer?: string;
