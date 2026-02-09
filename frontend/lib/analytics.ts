@@ -187,7 +187,7 @@ export async function getAnalyticsDashboard(
     }
     const countriesMap = new Map<string, number>();
 
-    demographics.forEach((item) => {
+    demographics.forEach((item: any) => {
       if (item.country) {
         const currentCount = countriesMap.get(item.country) || 0;
         countriesMap.set(
@@ -203,7 +203,10 @@ export async function getAnalyticsDashboard(
 
     // Process device data
     const deviceCounts = demographics.reduce(
-      (acc, item) => {
+      (
+        acc: AnalyticsDashboardData["demographics"]["devices"],
+        item: any,
+      ) => {
         if (
           item.deviceType &&
           (item.deviceType === "mobile" ||
@@ -218,6 +221,9 @@ export async function getAnalyticsDashboard(
       {
         mobile: 0,
         tablet: 0,
+        desktop: 0,
+      } as AnalyticsDashboardData["demographics"]["devices"],
+    );
         desktop: 0,
       } as AnalyticsDashboardData["demographics"]["devices"],
     );
