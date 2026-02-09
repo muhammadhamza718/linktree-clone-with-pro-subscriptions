@@ -181,7 +181,7 @@ export default function LinkManager({
       </div>
 
       {isAdding && (
-        <LoginForm
+        <LinkForm
           onSubmit={handleAddLink}
           onCancel={() => setIsAdding(false)}
         />
