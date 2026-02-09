@@ -1,11 +1,13 @@
 import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import prisma from "../lib/db";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "fallback-secret-change-me",
-  database: {
-    provider: "prisma",
-    client: require("../lib/db").default,
-  },
+  baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
   // Add email & password authentication
   emailAndPassword: {
     enabled: true,
