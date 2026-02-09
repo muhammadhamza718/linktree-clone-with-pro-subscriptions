@@ -1,6 +1,12 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import {
   PieChart,
   Pie,
@@ -12,8 +18,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Cell
-} from 'recharts';
+  Cell,
+} from "recharts";
 
 interface DeviceChartProps {
   deviceData: {
@@ -33,20 +39,20 @@ interface DeviceChartProps {
   description?: string;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
 export default function DeviceChart({
   deviceData,
   browserData = [],
   osData = [],
-  title = 'Device & Browser Analytics',
-  description = 'Breakdown of devices, browsers, and operating systems'
+  title = "Device & Browser Analytics",
+  description = "Breakdown of devices, browsers, and operating systems",
 }: DeviceChartProps) {
   // Prepare device data for pie chart
   const deviceChartData = [
-    { name: 'Mobile', value: deviceData.mobile },
-    { name: 'Tablet', value: deviceData.tablet },
-    { name: 'Desktop', value: deviceData.desktop },
+    { name: "Mobile", value: deviceData.mobile },
+    { name: "Tablet", value: deviceData.tablet },
+    { name: "Desktop", value: deviceData.desktop },
   ];
 
   return (
@@ -69,13 +75,18 @@ export default function DeviceChart({
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }: { name: string; percent: number }) =>
+                  `${name} ${(percent * 100).toFixed(0)}%`
+                }
               >
                 {deviceChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => [`${value} visitors`, 'Count']} />
+              <Tooltip formatter={(value) => [`${value} visitors`, "Count"]} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
@@ -86,7 +97,9 @@ export default function DeviceChart({
         <Card>
           <CardHeader>
             <CardTitle>Browser Distribution</CardTitle>
-            <CardDescription>Most common browsers used to access your profile</CardDescription>
+            <CardDescription>
+              Most common browsers used to access your profile
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -97,7 +110,9 @@ export default function DeviceChart({
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="browser" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`${value} visitors`, 'Count']} />
+                <Tooltip
+                  formatter={(value) => [`${value} visitors`, "Count"]}
+                />
                 <Legend />
                 <Bar dataKey="count" name="Visitors" fill="#82ca9d" />
               </BarChart>
@@ -111,7 +126,9 @@ export default function DeviceChart({
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Operating System Distribution</CardTitle>
-            <CardDescription>Most common operating systems used to access your profile</CardDescription>
+            <CardDescription>
+              Most common operating systems used to access your profile
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -122,7 +139,9 @@ export default function DeviceChart({
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="os" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`${value} visitors`, 'Count']} />
+                <Tooltip
+                  formatter={(value) => [`${value} visitors`, "Count"]}
+                />
                 <Legend />
                 <Bar dataKey="count" name="Visitors" fill="#ffc658" />
               </BarChart>
