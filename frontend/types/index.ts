@@ -206,3 +206,20 @@ export interface AnalyticsData {
   totalViews: number;
   totalClicks: number;
 }
+
+// Subscription types
+export type PlanType = "FREE" | "PRO" | "BUSINESS";
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  stripeCustomerId: string;
+  stripeSubscriptionId?: string;
+  stripePriceId?: string;
+  planType: PlanType;
+  status?: string;
+  currentPeriodEnd?: Date;
+  cancelAtPeriodEnd: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
