@@ -1,10 +1,6 @@
 # Linktree Clone with Pro Subscriptions
 
-<<<<<<< HEAD
 A high-performance, developer-first Linktree clone built for maximum control, scalability, and $0 maintenance cost.
-=======
-A Linktree clone with pro subscription features built with Next.js 16.1.4, React 19.2.3, and Tailwind CSS.
->>>>>>> 8b6d3adc7352eac4338c8930fc1e034eee5fca32
 
 ## 🚀 The Chosen Tech Stack
 
