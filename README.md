@@ -8,7 +8,7 @@ This project uses a "Hybrid-Control" architecture. We utilize powerful managed s
 
 | Layer              | Technology                  | Why?                                                                             |
 | :----------------- | :-------------------------- | :------------------------------------------------------------------------------- |
-| **Frontend**       | **Next.js 15 (App Router)** | Best-in-class performance, SEO, and React Server Components.                     |
+| **Frontend**       | **Next.js 16 (App Router)** | Best-in-class performance, SEO, and React Server Components.                     |
 | **Backend API**    | **Next.js Route Handlers**  | Single codebase, shared TypeScript types, and seamless Vercel deployment.        |
 | **Database**       | **Supabase (PostgreSQL)**   | 500MB DB storage + 5GB free file storage (avatars/icons). High scalability.      |
 | **ORM**            | **Prisma**                  | Type-safe database access and easy migrations.                                   |
