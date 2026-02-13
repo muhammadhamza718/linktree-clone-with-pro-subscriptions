@@ -23,4 +23,26 @@ export const auth = betterAuth({
       clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
     },
   },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user: any) => {
+          // Initialize free subscription record on user creation
+          await (prisma as any).subscription.create({
+            data: {
+              userId: user.id,
+              stripeCustomerId: `cus_placeholder_${user.id}`, // In real app, create Stripe customer here
+              planType: "FREE",
+            },
+          });
+        },
+      },
+    },
+  },
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes
+    },
+  },
 });

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { db } from "@/lib/db";
+import prisma from "@/lib/db";
 import Stripe from "stripe";
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -32,9 +32,8 @@ export async function POST(req: Request) {
   // Handle the event
   switch (event.type) {
     case "checkout.session.completed":
-      const subscription = await stripe.subscriptions.retrieve(
-        session.subscription as string,
-      );
+      const subscription: Stripe.Response<Stripe.Subscription> =
+        await stripe.subscriptions.retrieve(session.subscription as string);
 
       if (!session.metadata?.userId) {
         return NextResponse.json(
@@ -43,7 +42,7 @@ export async function POST(req: Request) {
         );
       }
 
-      await db.subscription.upsert({
+      await (prisma as any).subscription.upsert({
         where: { userId: session.metadata.userId },
         update: {
           stripeSubscriptionId: subscription.id,
@@ -51,7 +50,9 @@ export async function POST(req: Request) {
           stripeCustomerId: subscription.customer as string,
           planType: "PRO", // Simplified for now
           status: subscription.status,
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          currentPeriodEnd: new Date(
+            (subscription as any).current_period_end * 1000,
+          ),
         },
         create: {
           userId: session.metadata.userId,
@@ -60,15 +61,17 @@ export async function POST(req: Request) {
           stripeCustomerId: subscription.customer as string,
           planType: "PRO",
           status: subscription.status,
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          currentPeriodEnd: new Date(
+            (subscription as any).current_period_end * 1000,
+          ),
         },
       });
       break;
 
     case "customer.subscription.deleted":
     case "customer.subscription.updated":
-      const updatedSub = event.data.object as Stripe.Subscription;
-      await db.subscription.update({
+      const updatedSub = event.data.object as any;
+      await (prisma as any).subscription.update({
         where: { stripeSubscriptionId: updatedSub.id },
         data: {
           status: updatedSub.status,
