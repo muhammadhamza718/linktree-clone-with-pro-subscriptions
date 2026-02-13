@@ -1,6 +1,6 @@
 # Linktree Clone with Pro Subscriptions
 
-A high-performance, developer-first Linktree clone built for maximum control, scalability, and $0 maintenance cost.
+A high-performance, developer-first Linktree clone built for maximum control, scalability, and $0 maintenance cost
 
 ## 🚀 The Chosen Tech Stack
 
